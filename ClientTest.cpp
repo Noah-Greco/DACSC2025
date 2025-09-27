@@ -1,8 +1,10 @@
+#include "Librairie/Librairie.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "Librairie/Librairie.h"
+
 typedef struct
 {
  char nom[20];
