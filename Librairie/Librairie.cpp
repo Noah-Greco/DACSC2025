@@ -47,7 +47,6 @@ int ServerSocket(int port)
     }
     freeaddrinfo(results);
     printf("bind() reussi !\n");
-    pause();
 
     //fait appel à listen() pour démarrer la machine à états TCP
     if(listen(sckt_serveur,8)== -1)
@@ -104,13 +103,13 @@ int ClientSocket(char* ipServeur,int portServeur)
     hints.ai_family = AF_INET; //IPV4
     hints.ai_socktype = SOCK_STREAM;//TCP
     hints.ai_flags = /*AI_PASSIVE |*/ AI_NUMERICSERV; // pour une connexion passive
-    if (getaddrinfo(ipServeur,portServeurBis,&hints,&results) != 0)//null veut dire nimp quelle ip
+    if (getaddrinfo(NULL,portServeurBis,&hints,&results) != 0)//null veut dire nimp quelle ip
     {
         close(sckt_client);
         exit(1);
     } 
     //fait appel à connect() pour se connecter sur le serveur
-    if(connect(sckt_client,results->ai_addr,results->ai_addrlen)<0)
+    if(connect(sckt_client,results->ai_addr,results->ai_addrlen) == -1)
     {
        perror("Erreur lors de la tentative de connect ()");
        exit(1);
