@@ -6,6 +6,7 @@
 #include <pthread.h>
 
 //***** Etat du protocole : liste des clients loggés ****************
+
 int clients[NB_MAX_CLIENTS];
 int nbClients = 0;
 
@@ -55,10 +56,10 @@ bool SMOP(char* requete, char* reponse,int socket)
 	// ***** LOGOUT *****************************************
 	if (strcmp(ptr,"LOGOUT") == 0)
 	{
-	printf("\t[THREAD %p] LOGOUT\n",pthread_self());
-	retire(socket);
-	sprintf(reponse,"LOGOUT#ok");
-	return false;
+		printf("\t[THREAD %p] LOGOUT\n",pthread_self());
+		retire(socket);
+		sprintf(reponse,"LOGOUT#ok");
+		return false;
 	}
 	// ***** OPER *******************************************
 	if (strcmp(ptr,"OPER") == 0)
@@ -70,14 +71,15 @@ bool SMOP(char* requete, char* reponse,int socket)
 	a = atoi(strtok(NULL,"#"));
 	b = atoi(strtok(NULL,"#"));
 	printf("\t[THREAD %p] OPERATION %d %c %d\n",pthread_self(),a,op,b);
-	if (estPresent(socket) == -1) sprintf(reponse,"OPER#ko#Client non loggé !");
+	if (estPresent(socket) == -1) 
+		sprintf(reponse,"OPER#ko#Client non loggé !");
 	else
 	{
-	try
-	{
-	int resultat = SMOP_Operation(op,a,b);
-	sprintf(reponse,"OPER#ok#%d",resultat);
-	}
+		try
+		{
+		int resultat = SMOP_Operation(op,a,b);
+		sprintf(reponse,"OPER#ok#%d",resultat);
+		}
 	catch(int) { sprintf(reponse,"OPER#ko#Division par zéro !"); }
 	}
 	}
