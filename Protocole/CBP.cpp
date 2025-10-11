@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <mysql.h>
 
 bool CBP(char* requete, char* reponse,int socket);
 char CBP_Login(const char* user,const char* password);
@@ -19,7 +20,7 @@ bool CBP(char* requete, char* reponse,int socket)
 {
 	char *ptr = strtok(requete,"#");
 
-	if(strcmp(ptr == "LOGIN") == 0)
+	if(strcmp(ptr,"LOGIN") == 0)
 	{
 		char user[50], password[50];
 
@@ -65,6 +66,56 @@ bool CBP(char* requete, char* reponse,int socket)
 	//pour m'expliquer ce que tu as fait 
 	if(strcmp(ptr, "GET_SPECIALTIES") == 0)
 	{
+		MYSQL * connection;
+		connection = mysql_init(NULL);
+
+		if(!connection)
+		{
+			fprintf(stderr, "mysql_init failed\n");
+		}
+
+		else
+		{
+			if(!mysql_real_connect(connection, "", "", "", "", , , ))
+			{
+				fprintf(stderr, "connect : %s\n", mysql_error(connection));
+			}
+
+			else
+			{
+				if(mysql_query(connection, "Select..."))
+				{
+					fprintf(stderr, "Query : %s\n", mysql_error(connection));
+					mysql_close(connection);
+				}
+
+				else
+				{
+					MYSQL_RES * res = mysql_store_result(conncetion);
+
+					if(!res)
+					{
+						fprintf(stderr, "store_result : %s\n", mysql_error(connection));
+						mysql_close(connection);
+					}
+
+					else
+					{
+						MYSQL_ROW row;
+
+						while(row = mysql_fetch_row(res))
+						{
+							printf("Specialité : %s\n", row[0]);
+						}
+
+						mysql_free_result(res);
+						mysql_close(connection);
+					}
+				}
+
+			}
+		}
+
 
 	}
 
