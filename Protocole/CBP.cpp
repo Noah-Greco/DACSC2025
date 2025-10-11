@@ -56,12 +56,16 @@ bool CBP(char* requete, char* reponse,int socket)
 		retire(socket);
 		sprintf(reponse,"LOGOUT#ok");
 		return false;
-		
-	}
 
+	}
+	//Pas encore eu le temps de les compléter. Il faudrait implémenter la lecture dans la base de données
+	//Soit tu peux faire la lecture dans la BD soit tu peux continuer les serveurs ou clients réservation.
+	//Pour lire dans la bd j'ai mis toute les infos de la bd dans le readme et chat dis qu'on peut faire des lectures dans la bd depuis le code 
+	//donc ce serait ce qu'il faudrait faire. Si tu fais Client ou serveur réservation j'ai pas encore regarder mais si c ce que tu fais fais moi une note
+	//pour m'expliquer ce que tu as fait 
 	if(strcmp(ptr, "GET_SPECIALTIES") == 0)
 	{
-		
+
 	}
 
 	if(strcmp(ptr, "GET_DOCTORS") == 0)
