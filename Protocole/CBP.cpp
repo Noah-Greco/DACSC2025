@@ -76,14 +76,14 @@ bool CBP(char* requete, char* reponse,int socket)
 
 		else
 		{
-			if(!mysql_real_connect(connection, "", "", "", "", , , ))
+			if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
 			{
 				fprintf(stderr, "connect : %s\n", mysql_error(connection));
 			}
 
 			else
 			{
-				if(mysql_query(connection, "Select..."))
+				if(mysql_query(connection, "SELECT * FROM specialties;"))
 				{
 					fprintf(stderr, "Query : %s\n", mysql_error(connection));
 					mysql_close(connection);
@@ -91,7 +91,7 @@ bool CBP(char* requete, char* reponse,int socket)
 
 				else
 				{
-					MYSQL_RES * res = mysql_store_result(conncetion);
+					MYSQL_RES * res = mysql_store_result(connection);
 
 					if(!res)
 					{
@@ -103,7 +103,7 @@ bool CBP(char* requete, char* reponse,int socket)
 					{
 						MYSQL_ROW row;
 
-						while(row = mysql_fetch_row(res))
+						while((row = mysql_fetch_row(res)) != NULL)
 						{
 							printf("Specialité : %s\n", row[0]);
 						}
@@ -121,7 +121,55 @@ bool CBP(char* requete, char* reponse,int socket)
 
 	if(strcmp(ptr, "GET_DOCTORS") == 0)
 	{
+		MYSQL * connection;
+		connection = mysql_init(NULL);
 
+		if(!connection)
+		{
+			fprintf(stderr, "mysql_init failed\n");
+		}
+
+		else
+		{
+			if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
+			{
+				fprintf(stderr, "connect : %s\n", mysql_error(connection));
+			}
+
+			else
+			{
+				if(mysql_query(connection, "SELECT * FROM doctors;"))
+				{
+					fprintf(stderr, "Query : %s\n", mysql_error(connection));
+					mysql_close(connection);
+				}
+
+				else
+				{
+					MYSQL_RES * res = mysql_store_result(connection);
+
+					if(!res)
+					{
+						fprintf(stderr, "store_result : %s\n", mysql_error(connection));
+						mysql_close(connection);
+					}
+
+					else
+					{
+						MYSQL_ROW row;
+
+						while((row = mysql_fetch_row(res)) != NULL)
+						{
+							printf("Specialité : %s\n", row[0]);
+						}
+
+						mysql_free_result(res);
+						mysql_close(connection);
+					}
+				}
+
+			}
+		}
 	}
 
 	if(strcmp(ptr, "SEARCH_CONSULTATIONS") == 0)
