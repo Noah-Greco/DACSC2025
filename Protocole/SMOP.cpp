@@ -92,8 +92,9 @@ bool SMOP_Login(const char* user,const char* password)
 	if (strcmp(user,"wagner")==0 && strcmp(password,"abc123")==0) return true;
 	if (strcmp(user,"charlet")==0 && strcmp(password,"xyz456")==0) return true;
 	return false;
-	}
-	int SMOP_Operation(char op,int a,int b)
+}
+
+int SMOP_Operation(char op,int a,int b)
 	{
 	if (op == '+') return a+b;
 	if (op == '-') return a-b;

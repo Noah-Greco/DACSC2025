@@ -50,6 +50,34 @@ bool CBP(char* requete, char* reponse,int socket)
 		}
 
 	}
+	if (strcmp(ptr,"LOGOUT") == 0)
+	{
+		printf("\t[THREAD %p] LOGOUT\n",pthread_self());
+		retire(socket);
+		sprintf(reponse,"LOGOUT#ok");
+		return false;
+		
+	}
+
+	if(strcmp(ptr, "GET_SPECIALTIES") == 0)
+	{
+		
+	}
+
+	if(strcmp(ptr, "GET_DOCTORS") == 0)
+	{
+
+	}
+
+	if(strcmp(ptr, "SEARCH_CONSULTATIONS") == 0)
+	{
+		
+	}
+
+	if(strcmp(ptr, "BOOK_CONSULTATION") == 0)
+	{
+		
+	}
 }
 
 int estPresent(int socket)
