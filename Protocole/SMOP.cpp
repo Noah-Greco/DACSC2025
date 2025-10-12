@@ -116,15 +116,15 @@ int estPresent(int socket)
 	pthread_mutex_unlock(&mutexClients);
 	return indice;
 	}
-	void ajoute(int socket)
-	{
+void ajoute(int socket)
+{
 	pthread_mutex_lock(&mutexClients);
 	clients[nbClients] = socket;
 	nbClients++;
 	pthread_mutex_unlock(&mutexClients);
-	}
-	void retire(int socket)
-	{
+}
+void retire(int socket)
+{
 	int pos = estPresent(socket);
 	if (pos == -1) return;
 	pthread_mutex_lock(&mutexClients);
