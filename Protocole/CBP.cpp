@@ -27,11 +27,12 @@ bool CBP(char* requete, char* reponse,int socket)
 
 	if(strcmp(ptr,"LOGIN") == 0)
 	{
-		char firstName[50], lastName[50], NoPatient[10];
+		char firstName[50], lastName[50], NoPatient[10], NvPatient[10];
 
 		strcpy(firstName,strtok(NULL,"#"));
 		strcpy(lastName,strtok(NULL,"#"));
 		strcpy(NoPatient, strtok(NULL, "#"));
+		strcpy(NvPatient, strtok(NULL, "#"));
 
 		printf("\t[THREAD %p] LOGIN de %s\n",pthread_self(),firstName);
 
@@ -43,7 +44,7 @@ bool CBP(char* requete, char* reponse,int socket)
 
 		else
 		{
-			if (CBP_Login(firstName, lastName, NoPatient))
+			if (CBP_Login(firstName, lastName, NoPatient, NvPatient))
 			{
 				sprintf(reponse,"LOGIN#ok");
 				ajoute(socket);
@@ -128,60 +129,136 @@ void retire(int socket)
 	pthread_mutex_unlock(&mutexClients);
 }
 
-char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient)
+char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
 
-	if(!connection)
+	if(NvPatient == "OUI")
 	{
-		fprintf(stderr, "mysql_init failed\n");
-	}
-
-	else
-	{
-		if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
+		if(!connection)
 		{
-			fprintf(stderr, "connect : %s\n", mysql_error(connection));
+			fprintf(stderr, "mysql_init failed\n");
+			return "NON";
 		}
 
 		else
 		{
-			char sql_cmd[500];
-			sprintf(sql_cmd, "select * from patients where last_name like %s and first_name like %s;", lastName, firstName);
-			
-			if(mysql_query(connection, sql_cmd))
+			if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
 			{
-				fprintf(stderr, "Query : %s\n", mysql_error(connection));
-				mysql_close(connection);
+				fprintf(stderr, "connect : %s\n", mysql_error(connection));
+				return "NON";
 			}
 
 			else
 			{
-				MYSQL_RES * res = mysql_store_result(connection);
-
-				if(!res)
+				char sql_cmd[500];
+				sprintf(sql_cmd, "insert into patients (last_name, first_name) values (%s, %s);", lastName, firstName);
+				if(mysql_query(connection, sql_cmd))
 				{
-					fprintf(stderr, "store_result : %s\n", mysql_error(connection));
+					fprintf(stderr, "Query : %s\n", mysql_error(connection));
 					mysql_close(connection);
+					return "NON";
 				}
 
 				else
 				{
-					MYSQL_ROW row;
+					unsigned long long id = mysql_insert_id(connection);
 
-					while((row = mysql_fetch_row(res)) != NULL)
+					MYSQL_RES * res = mysql_store_result(connection);
+
+					if(!res)
 					{
-						printf("Specialité : %s\n", row[0]);
+						fprintf(stderr, "store_result : %s\n", mysql_error(connection));
+						mysql_close(connection);
+						return "NON";
 					}
 
-					mysql_free_result(res);
-					mysql_close(connection);
-				}
-			}
+					else
+					{
+						char valRet[20];
 
+						MYSQL_ROW row;
+
+						row = mysql_fetch_row(res)
+
+						printf("Création du patient avec l'id %llu. Connection OK", id);
+						
+						mysql_free_result(res);
+						mysql_close(connection);
+						
+						sprintf(valRet, "OUI#%llu", id)
+						return valRet;
+					}
+				}
+
+			}
 		}
 	}
+	else
+	{
+		if(!connection)
+		{
+			fprintf(stderr, "mysql_init failed\n");
+			return "NON";
+		}
+
+		else
+		{
+			if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
+			{
+				fprintf(stderr, "connect : %s\n", mysql_error(connection));
+				return "NON";
+			}
+
+			else
+			{
+				char sql_cmd[500];
+				sprintf(sql_cmd, "select * from patients where last_name like %s and first_name like %s;", lastName, firstName);
+				if(mysql_query(connection, sql_cmd))
+				{
+					fprintf(stderr, "Query : %s\n", mysql_error(connection));
+					mysql_close(connection);
+					return "NON";
+				}
+
+				else
+				{
+					MYSQL_RES * res = mysql_store_result(connection);
+
+					if(!res)
+					{
+						fprintf(stderr, "store_result : %s\n", mysql_error(connection));
+						mysql_close(connection);
+						return "NON";
+					}
+
+					else
+					{
+						MYSQL_ROW row;
+
+						row = mysql_fetch_row(res)
+
+						char id[20];
+						sprintf(id, "%d", NoPatient)
+
+						mysql_free_result(res);
+						mysql_close(connection);
+
+						if(strcmp(id, row[0]) == 0)
+						{
+							printf("Le NoPatient est bon. Connection OK");
+							return "OUI";
+						}
+
+						
+					}
+				}
+
+			}
+		}
+	}
+	
 }
 
 void CBP_Logout()
