@@ -269,7 +269,7 @@ void CBP_Logout(int socket, unsigned long long id)
 {
 	printf("\t[THREAD %p] LOGOUT\n",pthread_self());
 
-	reture(socket, id);
+	retire(socket, id);
 }
 
 char CBP_Get_Specialties()
@@ -310,9 +310,20 @@ char CBP_Get_Specialties()
 				{
 					MYSQL_ROW row;
 
+					char valRet[500];
+
+					row = mysql_fetch_row(res);
+
+					strcpy(valRet, row[0]);
+					strcat(valRet, ";");
+					strcat(valRet, row[1]);
+
 					while((row = mysql_fetch_row(res)) != NULL)
 					{
-						printf("Specialité : %s\n", row[0]);
+						strcat(valRet, "#");
+						strcat(valRet, row[0]);
+						strcat(valRet, ";");
+						strcat(valRet, row[1]);
 					}
 
 					mysql_free_result(res);
