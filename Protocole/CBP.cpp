@@ -326,8 +326,11 @@ char CBP_Get_Specialties()
 						strcat(valRet, row[1]);
 					}
 
+
 					mysql_free_result(res);
 					mysql_close(connection);
+
+					return valRet;
 				}
 			}
 		}
@@ -345,7 +348,7 @@ char CBP_Get_Doctors()
 	}
 
 	else
-	{
+	{						// connexion db , ip     ,  user    , mdp           ,   bduse,      
 		if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
 		{
 			fprintf(stderr, "connect : %s\n", mysql_error(connection));
@@ -371,15 +374,35 @@ char CBP_Get_Doctors()
 
 				else
 				{
-					MYSQL_ROW row;
+					MYSQL_ROW row; //var de type ligne bdd 
+					char DocRet[500];
+					row = mysql_fetch_row(res)
+					//permet de faire en sorte d'arriver au 1er
+					strcpy(DocRet, row[0]);
+					strcat(DocRet, ";");
+					strcat(DocRet, row[1]);
+					strcat(DocRet, ";");
+					strcat(DocRet, row[2]);
+					strcat(DocRet, ";");
+					strcat(DocRet, row[3]);
+
 
 					while((row = mysql_fetch_row(res)) != NULL)
 					{
-						printf("Specialité : %s\n", row[0]);
+						strcat(DocRet, "#");
+						strcat(DocRet, row[0]);
+						strcat(DocRet, ";");
+						strcat(DocRet, row[1]);
+						strcat(DocRet, ";");
+						strcat(DocRet, row[2]);
+						strcat(DocRet, ";");
+						strcat(DocRet, row[3]);
 					}
 
 					mysql_free_result(res);
 					mysql_close(connection);
+
+					return DocRet; 
 				}
 			}
 
@@ -408,8 +431,10 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 		{
 			char sql_cmd[500];
 
-			sprintf(sql_cmd, "SELECT * FROM consultations c inner join doctors d on (c.doctor_id = d.id) inner join specialties s on 
-				(d.specialty_id = s.id) where c.doctor_id like %s and c.date like %s and s.name like %s;", doctors, dateDeb, specialties);
+			sprintf(sql_cmd, 
+            "select consultations.id, specialties.name, CONCAT(doctors.last_name, ' ', doctors.first_name), DATE_FORMAT(consultations.date, '%%Y-%%m-%%d'), hour from consultations 
+            inner join doctors on consultations.doctor_id = doctors.id inner join specialties on doctors.specialty_id = specialties.id where patient_id is NULL and (specialties.name = '%s' 
+            or doctors.last_name = '%s') and date between '%s' and '%s';", specialty, doctor, startDate, endDate);
 
 			if(mysql_query(connection, sql_cmd))
 			{
@@ -430,14 +455,38 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 				else
 				{
 					MYSQL_ROW row;
-
+					char ConsRet[500];
+					row = mysql_fetch_row(res)6
+					strcpy(ConsRet, row[0]);
+					strcat(ConsRet, ";");
+					strcat(ConsRet, row[1]);
+					strcat(ConsRet, ";");
+					strcat(ConsRet, row[2]);
+					strcat(ConsRet, ";");
+					strcat(ConsRet, row[3]);
+					strcat(ConsRet, ";");
+					strcat(ConsRet, row[4]);
+					strcat(ConsRet, ";");
+					strcat(ConsRet, row[5]);
 					while((row = mysql_fetch_row(res)) != NULL)
 					{
-						printf("Specialité : %s\n", row[0]);
+						strcat(ConsRet, "#");
+						strcat(ConsRet, row[0]);
+						strcat(ConsRet, ";");
+						strcat(ConsRet, row[1]);
+						strcat(ConsRet, ";");
+						strcat(ConsRet, row[2]);
+						strcat(ConsRet, ";");
+						strcat(ConsRet, row[3]);
+						strcat(ConsRet, ";");
+						strcat(ConsRet, row[4]);
+						strcat(ConsRet, ";");
+						strcat(ConsRet, row[5]);
 					}
 
 					mysql_free_result(res);
 					mysql_close(connection);
+					return ConsRet;
 				}
 			}
 
@@ -445,7 +494,7 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 	}
 }
 
-char CBP_Book_Consultation(char* consultationId, char* reason)
+void CBP_Book_Consultation(char* consultationId, char* reason, unsigned long long id)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
@@ -464,35 +513,18 @@ char CBP_Book_Consultation(char* consultationId, char* reason)
 
 		else
 		{
-			if(mysql_query(connection, ""))
+			char sql_cmd[500];
+
+			int consID = atoi(consultationId);
+
+			sprintf(sql_cmd, "update consultations set patient_id = %llu' reason = '%s' where id = %d and patient_id is NULL;", id, reason, consID);
+			if(mysql_query(connection, sql_cmd))
 			{
 				fprintf(stderr, "Query : %s\n", mysql_error(connection));
 				mysql_close(connection);
 			}
 
-			else
-			{
-				MYSQL_RES * res = mysql_store_result(connection);
-
-				if(!res)
-				{
-					fprintf(stderr, "store_result : %s\n", mysql_error(connection));
-					mysql_close(connection);
-				}
-
-				else
-				{
-					MYSQL_ROW row;
-
-					while((row = mysql_fetch_row(res)) != NULL)
-					{
-						printf("Specialité : %s\n", row[0]);
-					}
-
-					mysql_free_result(res);
-					mysql_close(connection);
-				}
-			}
+			mysql_close(connection);
 
 		}
 	}
