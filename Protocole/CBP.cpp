@@ -7,16 +7,19 @@
 #include <mysql.h>
 
 bool CBP(char* requete, char* reponse,int socket);
-char CBP_Login(const char* user,const char* password);
-char CBP_Logout();
+char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
+char CBP_Logout(int socket, unsigned long long id);
 char CBP_Get_Specialties();
 char CBP_Get_Doctors();
 char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
 char CBP_Book_Consultation(char* consultationId, char* reason);
 
 int estPresent(int socket);
+void ajoute(int socket);
+void retire(int socket, unsigned long long id);
 
 int clients[NB_MAX_CLIENTS];
+unsigned long long patientsId[NB_MAX_CLIENTS];
 int nbClients = 0;
 
 pthread_mutex_t mutexClients = PTHREAD_MUTEX_INITIALIZER;
@@ -44,17 +47,7 @@ bool CBP(char* requete, char* reponse,int socket)
 
 		else
 		{
-			if (CBP_Login(firstName, lastName, NoPatient, NvPatient))
-			{
-				sprintf(reponse,"LOGIN#ok");
-				ajoute(socket);
-			}
-
-			else
-			{
-				sprintf(reponse,"LOGIN#ko#Mauvais identifiants !");
-				return false;
-			}
+			CBP_Login(firstName, lastName, NoPatient, NvPatient, socket)
 		}
 	}
 
@@ -110,26 +103,36 @@ int estPresent(int socket)
 	return indice;
 }
 
-void ajoute(int socket)
+void ajoute(int socket, unsigned long long id)
 {
 	pthread_mutex_lock(&mutexClients);
 	clients[nbClients] = socket;
 	nbClients++;
+	patientsId[nbClients] = id;
 	pthread_mutex_unlock(&mutexClients);
 }
 
-void retire(int socket)
+void retire(int socket, unsigned long long id)
 {
 	int pos = estPresent(socket);
-	if (pos == -1) return;
+
+	if (pos == -1) 
+		return;
+
 	pthread_mutex_lock(&mutexClients);
+
 	for (int i=pos ; i<=nbClients-2 ; i++)
 		clients[i] = clients[i+1];
+
+	for (int i=pos; i <= nbClients - 2; i++)
+		patientsId[i] = patientsId[i+1];
+
 	nbClients--;
+
 	pthread_mutex_unlock(&mutexClients);
 }
 
-char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient)
+char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
@@ -183,6 +186,8 @@ char CBP_Login(const char* firstName,const char* lastName, const char * NoPatien
 						row = mysql_fetch_row(res)
 
 						printf("Création du patient avec l'id %llu. Connection OK", id);
+
+						ajoute(socket, id);
 						
 						mysql_free_result(res);
 						mysql_close(connection);
@@ -258,13 +263,13 @@ char CBP_Login(const char* firstName,const char* lastName, const char * NoPatien
 			}
 		}
 	}
-	
 }
 
-void CBP_Logout()
+void CBP_Logout(int socket, unsigned long long id)
 {
 	printf("\t[THREAD %p] LOGOUT\n",pthread_self());
-	retire(socket);
+
+	reture(socket, id);
 }
 
 char CBP_Get_Specialties()
