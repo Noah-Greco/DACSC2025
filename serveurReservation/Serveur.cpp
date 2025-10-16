@@ -5,20 +5,22 @@
 #include <signal.h>
 #include <pthread.h>
 
-#include "../Librairie/Libraire.hpp"
+#include "../Librairie/Librairie.hpp"
 #include "../Protocole/CBP.hpp"
+#include "../param/param.h"
 
 void HandlerSIGINT(int s);
 void TraitementConnexion(int sService);
 void* FctThreadClient(void* p);
+int LoadConf(const char* nomFichier);
 
 int sEcoute;
 
-// Gestion du pool de threads
-#define NB_THREADS_POOL 2
-#define TAILLE_FILE_ATTENTE 20
+int PORT_RESERVATION;
+int NB_THREADS_POOL;
+int TAILLE_FILE_ATTENTE;
 
-int socketsAcceptees[TAILLE_FILE_ATTENTE];
+int* socketsAcceptees;
 int indiceEcriture=0, indiceLecture=0;
 
 pthread_mutex_t mutexSocketsAcceptees;
@@ -26,12 +28,23 @@ pthread_cond_t condSocketsAcceptees;
 
 int main(int argc,char* argv[])
 {
-	if (argc != 2)
+	const char* fichierConfig = "Serveur.conf";
+
+	printf("Chargement du fichier de configuration : %s\n", fichierConfig);
+
+	if(LoadConf(fichierConfig) != 0)
 	{
-		printf("Erreur...\n");
-		printf("USAGE : Serveur portServeur\n");
+		printf("Erreur lors de la lecture du chargement\n");
+		printf("%s\n", argv[0]);
 		exit(1);
 	}
+
+	socketsAcceptees = (int*)malloc(TAILLE_FILE_ATTENTE * sizeof(int));
+    if (socketsAcceptees == NULL)
+    {
+        printf("Erreur d'allocation mémoire\n");
+        exit(1);
+    }
 
 	// Initialisation socketsAcceptees
 	pthread_mutex_init(&mutexSocketsAcceptees,NULL);
@@ -53,7 +66,7 @@ int main(int argc,char* argv[])
 	}
 
 	// Creation de la socket d'écoute
-	if ((sEcoute = ServerSocket(atoi(argv[1]))) == -1)
+	if ((sEcoute = ServerSocket(PORT_RESERVATION) == -1)
 	{
 		perror("Erreur de ServeurSocket");
 		exit(1);
@@ -68,7 +81,7 @@ int main(int argc,char* argv[])
 
 	// Mise en boucle du serveur
 	int sService;
-	char ipClient[50];
+	char ipClient[IP_STR_LEN] = DEFAULT_SERVER_IP;
 
 	printf("Demarrage du serveur.\n");
 
@@ -79,7 +92,7 @@ int main(int argc,char* argv[])
 		{
 			perror("Erreur de Accept");
 			close(sEcoute);
-			SMOP_Close();
+			CBP_Close();
 			exit(1);
 		}
 
@@ -89,12 +102,14 @@ int main(int argc,char* argv[])
 		// (Production d'une tâche)
 		pthread_mutex_lock(&mutexSocketsAcceptees);
 
-		socketsAcceptees[indiceEcriture] = sService; // !!!
+		socketsAcceptees[indiceEcriture] = sService; 
 
 		indiceEcriture++;
 
-		if (indiceEcriture == TAILLE_FILE_ATTENTE) indiceEcriture = 0;
-			pthread_mutex_unlock(&mutexSocketsAcceptees);
+		if (indiceEcriture == TAILLE_FILE_ATTENTE) 
+			indiceEcriture = 0;
+
+		pthread_mutex_unlock(&mutexSocketsAcceptees);
 
 		pthread_cond_signal(&condSocketsAcceptees);
 	}
@@ -105,7 +120,7 @@ void* FctThreadClient(void* p)
 
 	while(1)
 	{
-		printf("\t[THREAD %p] Attente socket...\n",pthread_self());
+		printf("\t[THREAD %lu] Attente socket...\n", (unsigned long) pthread_self());
 
 		// Attente d'une tâche
 		pthread_mutex_lock(&mutexSocketsAcceptees);
@@ -117,7 +132,8 @@ void* FctThreadClient(void* p)
 		socketsAcceptees[indiceLecture] = -1;
 		indiceLecture++;
 
-		if (indiceLecture == TAILLE_FILE_ATTENTE) indiceLecture = 0;
+		if (indiceLecture == TAILLE_FILE_ATTENTE) 
+			indiceLecture = 0;
 		
 		pthread_mutex_unlock(&mutexSocketsAcceptees);
 
@@ -132,12 +148,13 @@ void HandlerSIGINT(int s)
 	printf("\nArret du serveur.\n");
 	close(sEcoute);
 	pthread_mutex_lock(&mutexSocketsAcceptees);
+
 	for (int i=0 ; i<TAILLE_FILE_ATTENTE ; i++)
 		if (socketsAcceptees[i] != -1) close(socketsAcceptees[i]);
 	
 	pthread_mutex_unlock(&mutexSocketsAcceptees);
 
-	SMOP_Close();
+	CBP_Close(); 
 
 	exit(0);
 }
@@ -145,33 +162,35 @@ void TraitementConnexion(int sService)
 {
 	char requete[200], reponse[200];
 	int nbLus, nbEcrits;
-	bool onContinue = true;
+	int status = SUCCES;
 
-	while (onContinue)
+	while(true)
 	{
-		printf("\t[THREAD %p] Attente requete...\n",pthread_self());
+		printf("\t[THREAD %lu] Attente requete...\n",(unsigned long)pthread_self());
 
 		// ***** Reception Requete ******************
 		if ((nbLus = Receive(sService,requete)) < 0)
 		{
 			perror("Erreur de Receive");
 			close(sService);
+
 			HandlerSIGINT(0);
 		}
+
 		// ***** Fin de connexion ? *****************
 		if (nbLus == 0)
 		{
-			printf("\t[THREAD %p] Fin de connexion du client.\n",pthread_self());
+			printf("\t[THREAD %lu] Fin de connexion du client.\n",(unsigned long)pthread_self());
 			close(sService);
 			return;
 		}
 
 		requete[nbLus] = 0;
 
-		printf("\t[THREAD %p] Requete recue = %s\n",pthread_self(),requete);
+		printf("\t[THREAD %lu] Requete recue = %s\n",(unsigned long)pthread_self(),requete);
 
 		// ***** Traitement de la requete ***********
-		onContinue = SMOP(requete,reponse,sService);
+		status = CBP(requete,reponse,sService);
 
 		// ***** Envoi de la reponse ****************
 		if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)
@@ -183,7 +202,49 @@ void TraitementConnexion(int sService)
 
 		printf("\t[THREAD %p] Reponse envoyee = %s\n",pthread_self(),reponse);
 
-		if (!onContinue)
-			printf("\t[THREAD %p] Fin de connexion de la socket %d\n",pthread_self(),sService);
+		if (status == FERMER_CONNEXION)
+        {
+            printf("\t[THREAD %lu] Fin de connexion de la socket %d\n", (unsigned long)pthread_self(), sService);
+            close(sService);
+            return;
+        }
 	}
+}
+
+int LoadConf(const char* nomFichier)
+{
+    FILE* fichier = fopen(nomFichier, "r");
+    if (fichier == NULL)
+    {
+        printf("Impossible d'ouvrir le fichier de configuration: %s\n", nomFichier);
+        return -1;
+    }
+    
+    char ligne[256];
+    char cle[64], valeur[64];
+    
+    while (fgets(ligne, sizeof(ligne), fichier) != NULL)
+    {
+        if (ligne[0] == '#' || ligne[0] == '\n' || ligne[0] == '\r')
+            continue;
+            
+        if (sscanf(ligne, "%63[^=]=%63s", cle, valeur) == 2)
+        {
+            if (strcmp(cle, "PORT_RESERVATION") == 0)
+            {
+                PORT_RESERVATION = atoi(valeur);
+            }
+            else if (strcmp(cle, "NB_THREADS_POOL") == 0)
+            {
+                NB_THREADS_POOL = atoi(valeur);
+            }
+            else if (strcmp(cle, "TAILLE_FILE_ATTENTE") == 0)
+            {
+                TAILLE_FILE_ATTENTE = atoi(valeur);
+            }
+        }
+    }
+    
+    fclose(fichier);
+    return 0;
 }
