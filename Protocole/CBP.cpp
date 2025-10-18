@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <mysql.h>
+#include <mysql/mysql.h>
 
 bool CBP(char* requete, char* reponse,int socket);
 char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
@@ -47,7 +47,7 @@ bool CBP(char* requete, char* reponse,int socket)
 
 		else
 		{
-			CBP_Login(firstName, lastName, NoPatient, NvPatient, socket)
+			CBP_Login(firstName, lastName, NoPatient, NvPatient, socket);
 		}
 	}
 
@@ -376,7 +376,7 @@ char CBP_Get_Doctors()
 				{
 					MYSQL_ROW row; //var de type ligne bdd 
 					char DocRet[500];
-					row = mysql_fetch_row(res)
+					row = mysql_fetch_row(res);
 					//permet de faire en sorte d'arriver au 1er
 					strcpy(DocRet, row[0]);
 					strcat(DocRet, ";");
@@ -432,9 +432,9 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 			char sql_cmd[500];
 
 			sprintf(sql_cmd, 
-            "select consultations.id, specialties.name, CONCAT(doctors.last_name, ' ', doctors.first_name), DATE_FORMAT(consultations.date, '%%Y-%%m-%%d'), hour from consultations 
-            inner join doctors on consultations.doctor_id = doctors.id inner join specialties on doctors.specialty_id = specialties.id where patient_id is NULL and (specialties.name = '%s' 
-            or doctors.last_name = '%s') and date between '%s' and '%s';", specialty, doctor, startDate, endDate);
+            "select consultations.id, specialties.name, CONCAT(doctors.last_name, ' ', doctors.first_name), DATE_FORMAT(consultations.date, '%%Y-%%m-%%d'), hour from consultations "
+            "inner join doctors on consultations.doctor_id = doctors.id inner join specialties on doctors.specialty_id = specialties.id where patient_id is NULL and (specialties.name = '%s' "
+            "or doctors.last_name = '%s') and date between '%s' and '%s';", specialty, doctor, startDate, endDate);
 
 			if(mysql_query(connection, sql_cmd))
 			{
@@ -456,7 +456,7 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 				{
 					MYSQL_ROW row;
 					char ConsRet[500];
-					row = mysql_fetch_row(res)6
+					row = mysql_fetch_row(res);
 					strcpy(ConsRet, row[0]);
 					strcat(ConsRet, ";");
 					strcat(ConsRet, row[1]);

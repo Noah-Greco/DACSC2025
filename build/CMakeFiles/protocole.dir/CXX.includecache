@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/student/DACSC2025/Protocole/CBP.cpp
+CBP.h
+/home/student/DACSC2025/Protocole/CBP.h
+string.h
+-
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+pthread.h
+-
+mysql/mysql.h
+-
+
+/home/student/DACSC2025/Protocole/CBP.h
+

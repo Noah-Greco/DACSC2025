@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/reservation_server.dir/serveurReservation/Serveur.cpp.o -o bin/reservation_server  libprotocole.a liblibrarie.a -lpthread 

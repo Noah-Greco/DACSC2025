@@ -1,0 +1,11 @@
+/home/student/DACSC2025/build/CMakeFiles/install/strip.dir
+/home/student/DACSC2025/build/CMakeFiles/install/local.dir
+/home/student/DACSC2025/build/CMakeFiles/install.dir
+/home/student/DACSC2025/build/CMakeFiles/list_install_components.dir
+/home/student/DACSC2025/build/CMakeFiles/reservation_server.dir
+/home/student/DACSC2025/build/CMakeFiles/ClientConsultationBookerQt.dir
+/home/student/DACSC2025/build/CMakeFiles/protocole.dir
+/home/student/DACSC2025/build/CMakeFiles/edit_cache.dir
+/home/student/DACSC2025/build/CMakeFiles/librarie.dir
+/home/student/DACSC2025/build/CMakeFiles/rebuild_cache.dir
+/home/student/DACSC2025/build/CMakeFiles/ClientConsultationBookerQt_autogen.dir
