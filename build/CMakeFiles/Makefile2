@@ -97,8 +97,8 @@ clean: CMakeFiles/ClientConsultationBookerQt_autogen.dir/clean
 # Target rules for target CMakeFiles/reservation_server.dir
 
 # All Build rule for target.
-CMakeFiles/reservation_server.dir/all: CMakeFiles/librarie.dir/all
 CMakeFiles/reservation_server.dir/all: CMakeFiles/protocole.dir/all
+CMakeFiles/reservation_server.dir/all: CMakeFiles/librarie.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reservation_server.dir/build.make CMakeFiles/reservation_server.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reservation_server.dir/build.make CMakeFiles/reservation_server.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=10,11 "Built target reservation_server"
@@ -125,9 +125,9 @@ CMakeFiles/reservation_server.dir/clean:
 # Target rules for target CMakeFiles/ClientConsultationBookerQt.dir
 
 # All Build rule for target.
+CMakeFiles/ClientConsultationBookerQt.dir/all: CMakeFiles/protocole.dir/all
 CMakeFiles/ClientConsultationBookerQt.dir/all: CMakeFiles/librarie.dir/all
 CMakeFiles/ClientConsultationBookerQt.dir/all: CMakeFiles/ClientConsultationBookerQt_autogen.dir/all
-CMakeFiles/ClientConsultationBookerQt.dir/all: CMakeFiles/protocole.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ClientConsultationBookerQt.dir/build.make CMakeFiles/ClientConsultationBookerQt.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ClientConsultationBookerQt.dir/build.make CMakeFiles/ClientConsultationBookerQt.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=1,2,3,4 "Built target ClientConsultationBookerQt"
@@ -208,8 +208,8 @@ CMakeFiles/librarie.dir/clean:
 # Target rules for target CMakeFiles/ClientConsultationBookerQt_autogen.dir
 
 # All Build rule for target.
-CMakeFiles/ClientConsultationBookerQt_autogen.dir/all: CMakeFiles/librarie.dir/all
 CMakeFiles/ClientConsultationBookerQt_autogen.dir/all: CMakeFiles/protocole.dir/all
+CMakeFiles/ClientConsultationBookerQt_autogen.dir/all: CMakeFiles/librarie.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ClientConsultationBookerQt_autogen.dir/build.make CMakeFiles/ClientConsultationBookerQt_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ClientConsultationBookerQt_autogen.dir/build.make CMakeFiles/ClientConsultationBookerQt_autogen.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=5 "Built target ClientConsultationBookerQt_autogen"

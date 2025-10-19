@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/student/DACSC2025/Librairie/Librairie.hpp
+cstddef
+-
+
+/home/student/DACSC2025/Protocole/CBP.hpp
+
+/home/student/DACSC2025/param/param.h
+
+/home/student/DACSC2025/serveurReservation/Serveur.cpp
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+string.h
+-
+signal.h
+-
+pthread.h
+-
+../Librairie/Librairie.hpp
+/home/student/DACSC2025/Librairie/Librairie.hpp
+../Protocole/CBP.hpp
+/home/student/DACSC2025/Protocole/CBP.hpp
+../param/param.h
+/home/student/DACSC2025/param/param.h
+

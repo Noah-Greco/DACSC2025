@@ -66,7 +66,7 @@ int main(int argc,char* argv[])
 	}
 
 	// Creation de la socket d'écoute
-	if ((sEcoute = ServerSocket(PORT_RESERVATION) == -1)
+	if ((sEcoute = ServerSocket(PORT_RESERVATION)) == -1)
 	{
 		perror("Erreur de ServeurSocket");
 		exit(1);
@@ -92,7 +92,7 @@ int main(int argc,char* argv[])
 		{
 			perror("Erreur de Accept");
 			close(sEcoute);
-			CBP_Close();
+			CBP_Logout(sEcoute);
 			exit(1);
 		}
 
@@ -154,7 +154,7 @@ void HandlerSIGINT(int s)
 	
 	pthread_mutex_unlock(&mutexSocketsAcceptees);
 
-	CBP_Close(); 
+	CBP_Logout(sEcoute); 
 
 	exit(0);
 }

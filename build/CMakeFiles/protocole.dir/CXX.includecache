@@ -7,8 +7,8 @@
 #IncludeRegexTransform: 
 
 /home/student/DACSC2025/Protocole/CBP.cpp
-CBP.h
-/home/student/DACSC2025/Protocole/CBP.h
+CBP.hpp
+/home/student/DACSC2025/Protocole/CBP.hpp
 string.h
 -
 stdio.h
@@ -22,5 +22,5 @@ pthread.h
 mysql/mysql.h
 -
 
-/home/student/DACSC2025/Protocole/CBP.h
+/home/student/DACSC2025/Protocole/CBP.hpp
 

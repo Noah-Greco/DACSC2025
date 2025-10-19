@@ -99,6 +99,8 @@ add_executable(ClientConsultationBookerQt
   ${CLIENT_SOURCES}
 )
 
+set_target_properties(ClientConsultationBookerQt PROPERTIES AUTOUIC OFF)
+
 # Inclure le dossier client pour trouver mainwindow*.h
 target_include_directories(ClientConsultationBookerQt
   PRIVATE ${CMAKE_SOURCE_DIR}/ClientConsultationBookerQt
@@ -108,8 +110,3 @@ target_include_directories(ClientConsultationBookerQt
 target_link_libraries(ClientConsultationBookerQt
   PRIVATE ${QT_PACKAGE}::Widgets protocole librarie
 )
-
-# Pour certaines distros, nécessaire pour l’ICO/ICU au runtime Qt
-if (UNIX AND NOT APPLE)
-  target_compile_definitions(ClientConsultationBookerQt PRIVATE QT_NO_KEYWORDS)
-endif()

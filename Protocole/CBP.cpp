@@ -1,4 +1,4 @@
-#include "CBP.h"
+#include "CBP.hpp"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,19 +7,18 @@
 #include <mysql/mysql.h>
 
 bool CBP(char* requete, char* reponse,int socket);
-char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
-char CBP_Logout(int socket, unsigned long long id);
-char CBP_Get_Specialties();
-char CBP_Get_Doctors();
-char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
-char CBP_Book_Consultation(char* consultationId, char* reason);
+const char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
+void CBP_Logout(int socket);
+const char * CBP_Get_Specialties();
+const char * CBP_Get_Doctors();
+const char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
+void CBP_Book_Consultation(char* consultationId, char* reason, int id);
 
 int estPresent(int socket);
 void ajoute(int socket);
 void retire(int socket, unsigned long long id);
 
 int clients[NB_MAX_CLIENTS];
-unsigned long long patientsId[NB_MAX_CLIENTS];
 int nbClients = 0;
 
 pthread_mutex_t mutexClients = PTHREAD_MUTEX_INITIALIZER;
@@ -37,7 +36,7 @@ bool CBP(char* requete, char* reponse,int socket)
 		strcpy(NoPatient, strtok(NULL, "#"));
 		strcpy(NvPatient, strtok(NULL, "#"));
 
-		printf("\t[THREAD %p] LOGIN de %s\n",pthread_self(),firstName);
+		printf("\t[THREAD %lu] LOGIN de %s\n",(unsigned long)pthread_self(),firstName);
 
 		if (estPresent(socket) >= 0) // client déjà loggé
 		{
@@ -53,7 +52,7 @@ bool CBP(char* requete, char* reponse,int socket)
 
 	if (strcmp(ptr,"LOGOUT") == 0)
 	{
-		CBP_Logout();
+		CBP_Logout(socket);
 	}
 	
 	if(strcmp(ptr, "GET_SPECIALTIES") == 0)
@@ -75,15 +74,17 @@ bool CBP(char* requete, char* reponse,int socket)
 		char * startDate = strtok(NULL, "#");
 		char * endDate = strtok(NULL, "#");
 
-		CBP_Search_Consultations(specialties, , startDate, endDate);
+		CBP_Search_Consultations(specialties, doctors, startDate, endDate);
 	}
 
 	if(strcmp(ptr, "BOOK_CONSULTATION") == 0)
 	{
 		char * cons_id = strtok(NULL, "#");
 		char * reason = strtok(NULL, "#");
+		char * id = strtok(NULL, "#");
+		int ID = atoi(id);
 
-		CBP_Book_Consultation(cons_id, reason);
+		CBP_Book_Consultation(cons_id, reason, ID);
 	}
 }
 
@@ -108,11 +109,10 @@ void ajoute(int socket, unsigned long long id)
 	pthread_mutex_lock(&mutexClients);
 	clients[nbClients] = socket;
 	nbClients++;
-	patientsId[nbClients] = id;
 	pthread_mutex_unlock(&mutexClients);
 }
 
-void retire(int socket, unsigned long long id)
+void retire(int socket)
 {
 	int pos = estPresent(socket);
 
@@ -124,20 +124,17 @@ void retire(int socket, unsigned long long id)
 	for (int i=pos ; i<=nbClients-2 ; i++)
 		clients[i] = clients[i+1];
 
-	for (int i=pos; i <= nbClients - 2; i++)
-		patientsId[i] = patientsId[i+1];
-
 	nbClients--;
 
 	pthread_mutex_unlock(&mutexClients);
 }
 
-char CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket)
+const char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
 
-	if(NvPatient == "OUI")
+	if(strcmp(NvPatient, "OUI") == 0) 
 	{
 		if(!connection)
 		{
@@ -183,7 +180,7 @@ char CBP_Login(const char* firstName,const char* lastName, const char * NoPatien
 
 						MYSQL_ROW row;
 
-						row = mysql_fetch_row(res)
+						row = mysql_fetch_row(res);
 
 						printf("Création du patient avec l'id %llu. Connection OK", id);
 
@@ -192,7 +189,7 @@ char CBP_Login(const char* firstName,const char* lastName, const char * NoPatien
 						mysql_free_result(res);
 						mysql_close(connection);
 						
-						sprintf(valRet, "OUI#%llu", id)
+						sprintf(valRet, "OUI#%llu", id);
 						return valRet;
 					}
 				}
@@ -242,10 +239,14 @@ char CBP_Login(const char* firstName,const char* lastName, const char * NoPatien
 					{
 						MYSQL_ROW row;
 
-						row = mysql_fetch_row(res)
+						row = mysql_fetch_row(res);
 
 						char id[20];
-						sprintf(id, "%d", NoPatient)
+						int NumPatient;
+
+						NumPatient = atoi(NoPatient);
+
+						sprintf(id, "%d", NumPatient);
 
 						mysql_free_result(res);
 						mysql_close(connection);
@@ -265,14 +266,14 @@ char CBP_Login(const char* firstName,const char* lastName, const char * NoPatien
 	}
 }
 
-void CBP_Logout(int socket, unsigned long long id)
+void CBP_Logout(int socket)
 {
-	printf("\t[THREAD %p] LOGOUT\n",pthread_self());
+	printf("\t[THREAD %lu] LOGOUT\n",(unsigned long)pthread_self());
 
-	retire(socket, id);
+	retire(socket);
 }
 
-char CBP_Get_Specialties()
+const char * CBP_Get_Specialties()
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
@@ -337,7 +338,7 @@ char CBP_Get_Specialties()
 	}
 }
 
-char CBP_Get_Doctors()
+const char * CBP_Get_Doctors()
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
@@ -410,7 +411,7 @@ char CBP_Get_Doctors()
 	}
 }
 
-char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin)
+const char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
@@ -434,7 +435,7 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 			sprintf(sql_cmd, 
             "select consultations.id, specialties.name, CONCAT(doctors.last_name, ' ', doctors.first_name), DATE_FORMAT(consultations.date, '%%Y-%%m-%%d'), hour from consultations "
             "inner join doctors on consultations.doctor_id = doctors.id inner join specialties on doctors.specialty_id = specialties.id where patient_id is NULL and (specialties.name = '%s' "
-            "or doctors.last_name = '%s') and date between '%s' and '%s';", specialty, doctor, startDate, endDate);
+            "or doctors.last_name = '%s') and date between '%s' and '%s';", specialties, id, dateDeb, dateFin);
 
 			if(mysql_query(connection, sql_cmd))
 			{
@@ -494,7 +495,7 @@ char CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, 
 	}
 }
 
-void CBP_Book_Consultation(char* consultationId, char* reason, unsigned long long id)
+void CBP_Book_Consultation(char* consultationId, char* reason, int id)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
@@ -517,7 +518,7 @@ void CBP_Book_Consultation(char* consultationId, char* reason, unsigned long lon
 
 			int consID = atoi(consultationId);
 
-			sprintf(sql_cmd, "update consultations set patient_id = %llu' reason = '%s' where id = %d and patient_id is NULL;", id, reason, consID);
+			sprintf(sql_cmd, "update consultations set patient_id = %d reason = '%s' where id = %d and patient_id is NULL;", id, reason, consID);
 			if(mysql_query(connection, sql_cmd))
 			{
 				fprintf(stderr, "Query : %s\n", mysql_error(connection));

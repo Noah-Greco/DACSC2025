@@ -73,7 +73,7 @@ CMAKE_BINARY_DIR = /home/student/DACSC2025/build
 include CMakeFiles/ClientConsultationBookerQt_autogen.dir/progress.make
 
 CMakeFiles/ClientConsultationBookerQt_autogen:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target ClientConsultationBookerQt"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target ClientConsultationBookerQt"
 	/usr/bin/cmake -E cmake_autogen /home/student/DACSC2025/build/CMakeFiles/ClientConsultationBookerQt_autogen.dir/AutogenInfo.json Debug
 
 ClientConsultationBookerQt_autogen: CMakeFiles/ClientConsultationBookerQt_autogen

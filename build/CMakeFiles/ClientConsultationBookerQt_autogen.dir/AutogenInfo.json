@@ -11,14 +11,14 @@
 	[
 		[
 			"/home/student/DACSC2025/ClientConsultationBookerQt/mainwindowclientconsultationbooker.h",
-			"MU",
+			"Mu",
 			"HCHQ6BZETM/moc_mainwindowclientconsultationbooker.cpp"
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
 	"INCLUDE_DIR" : "/home/student/DACSC2025/build/ClientConsultationBookerQt_autogen/include",
 	"MOC_COMPILATION_FILE" : "/home/student/DACSC2025/build/ClientConsultationBookerQt_autogen/mocs_compilation.cpp",
-	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_NO_KEYWORDS", "QT_WIDGETS_LIB" ],
+	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_WIDGETS_LIB" ],
 	"MOC_DEPEND_FILTERS" : 
 	[
 		[
@@ -62,21 +62,17 @@
 	"PARALLEL" : 1,
 	"PARSE_CACHE_FILE" : "/home/student/DACSC2025/build/CMakeFiles/ClientConsultationBookerQt_autogen.dir/ParseCache.txt",
 	"QT_MOC_EXECUTABLE" : "/usr/lib64/qt5/bin/moc",
-	"QT_UIC_EXECUTABLE" : "/usr/lib64/qt5/bin/uic",
+	"QT_UIC_EXECUTABLE" : "",
 	"QT_VERSION_MAJOR" : 5,
 	"QT_VERSION_MINOR" : 12,
 	"SETTINGS_FILE" : "/home/student/DACSC2025/build/CMakeFiles/ClientConsultationBookerQt_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
-		[ "/home/student/DACSC2025/ClientConsultationBookerQt/main.cpp", "MU" ],
+		[ "/home/student/DACSC2025/ClientConsultationBookerQt/main.cpp", "Mu" ],
 		[
 			"/home/student/DACSC2025/ClientConsultationBookerQt/mainwindowclientconsultationbooker.cpp",
-			"MU"
+			"Mu"
 		]
 	],
-	"UIC_OPTIONS" : [],
-	"UIC_SEARCH_PATHS" : [],
-	"UIC_SKIP" : [],
-	"UIC_UI_FILES" : [],
 	"VERBOSITY" : 0
 }
