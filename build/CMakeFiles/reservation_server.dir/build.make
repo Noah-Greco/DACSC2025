@@ -100,6 +100,7 @@ bin/reservation_server: CMakeFiles/reservation_server.dir/serveurReservation/Ser
 bin/reservation_server: CMakeFiles/reservation_server.dir/build.make
 bin/reservation_server: libprotocole.a
 bin/reservation_server: liblibrarie.a
+bin/reservation_server: /usr/lib64/mysql/libmysqlclient.so
 bin/reservation_server: CMakeFiles/reservation_server.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable bin/reservation_server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/reservation_server.dir/link.txt --verbose=$(VERBOSE)

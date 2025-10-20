@@ -133,6 +133,7 @@ bin/ClientConsultationBookerQt: libprotocole.a
 bin/ClientConsultationBookerQt: liblibrarie.a
 bin/ClientConsultationBookerQt: /usr/lib64/libQt5Gui.so.5.12.5
 bin/ClientConsultationBookerQt: /usr/lib64/libQt5Core.so.5.12.5
+bin/ClientConsultationBookerQt: /usr/lib64/mysql/libmysqlclient.so
 bin/ClientConsultationBookerQt: CMakeFiles/ClientConsultationBookerQt.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/student/DACSC2025/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable bin/ClientConsultationBookerQt"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ClientConsultationBookerQt.dir/link.txt --verbose=$(VERBOSE)

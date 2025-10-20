@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DDEFAULT_CONF_PATH=\"/etc/hospital-reservation/Serveur.conf\" -DFALLBACK_CONF_PATH=\"/home/student/DACSC2025/serveurReservation/Serveur.conf\"
 
-CXX_INCLUDES = -I/home/student/DACSC2025/param -I/home/student/DACSC2025/Protocole -I/home/student/DACSC2025/Librairie
+CXX_INCLUDES = -I/home/student/DACSC2025/param -I/home/student/DACSC2025/Protocole -I/home/student/DACSC2025/Librairie -I/home/student/DACSC2025/ClientConsultationBookerQt -isystem /usr/include/mysql
 
-CXX_FLAGS = -g -Wall -Wextra -Wpedantic -std=c++17
+CXX_FLAGS = -g -Wall -Wextra -Wpedantic -m64 -std=c++17
 

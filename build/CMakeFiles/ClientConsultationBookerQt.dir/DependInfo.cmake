@@ -29,6 +29,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/usr/include/qt5/QtGui"
   "/usr/include/qt5/QtCore"
   "/usr/lib64/qt5/mkspecs/linux-g++"
+  "/usr/include/mysql"
   )
 
 # Targets to which this target links.

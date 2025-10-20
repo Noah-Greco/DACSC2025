@@ -68,6 +68,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake/Modules/Compiler/GNU.cmake"
   "/usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/share/cmake/Modules/FindPackageMessage.cmake"
+  "/usr/share/cmake/Modules/FindPkgConfig.cmake"
   "/usr/share/cmake/Modules/FindThreads.cmake"
   "/usr/share/cmake/Modules/Internal/CMakeCheckCompilerFlag.cmake"
   "/usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake"

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Projet C++
+# ===================== Projet =====================
 project(HospitalReservation LANGUAGES CXX)
 
 # Standard & warnings
@@ -9,49 +9,56 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+# Sortie des binaires
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# ===================== Dépendances =====================
+# Threads POSIX
+find_package(Threads REQUIRED)
+
 # Qt (Qt6 si dispo, sinon Qt5)
 set(QT_REQUIRED_COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS ${QT_REQUIRED_COMPONENTS} QUIET)
-if(Qt6_FOUND)
+if (Qt6_FOUND)
   set(QT_PACKAGE Qt6)
 else()
   find_package(Qt5 REQUIRED COMPONENTS ${QT_REQUIRED_COMPONENTS})
   set(QT_PACKAGE Qt5)
 endif()
 
-# Threads pour le serveur
-find_package(Threads REQUIRED)
-
-# Où sortir les binaires
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# Dossiers communs d'en-têtes (headers only)
-# param/ contient pram.h (headers only)
+# Headers communs (headers only)
+# param/ contient pram.h
 include_directories(
   ${CMAKE_SOURCE_DIR}/param
   ${CMAKE_SOURCE_DIR}/Protocole
   ${CMAKE_SOURCE_DIR}/Librairie
+  ${CMAKE_SOURCE_DIR}/ClientConsultationBookerQt
 )
 
-# --- Libraries internes -------------------------------------------------
+# ===================== Libraries internes =====================
 
-# 1) protocole -> Protocole/CBP.cpp
+# --- protocole : Protocole/CBP.cpp ---
 add_library(protocole STATIC
   ${CMAKE_SOURCE_DIR}/Protocole/CBP.cpp
 )
 target_include_directories(protocole PUBLIC ${CMAKE_SOURCE_DIR}/Protocole)
 
-# 2) librairie -> tous les .cpp de Librairie/
-# (on GLOB ici pour t’éviter d’énumérer; si tu préfères, liste-les explicitement)
+# --- MySQL client via pkg-config (mysqlclient uniquement) ---
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MYSQLCLIENT REQUIRED IMPORTED_TARGET mysqlclient)
+
+# Lier la lib MySQL à la target qui utilise mysql_* (protocole)
+target_include_directories(protocole PUBLIC ${MYSQLCLIENT_INCLUDE_DIRS})
+target_link_libraries(protocole PUBLIC PkgConfig::MYSQLCLIENT)
+
+# --- librairie : tous les .cpp de Librairie/ ---
 file(GLOB LIBRAIRIE_SOURCES
   "${CMAKE_SOURCE_DIR}/Librairie/*.cpp"
 )
 add_library(librarie STATIC ${LIBRAIRIE_SOURCES})
 target_include_directories(librarie PUBLIC ${CMAKE_SOURCE_DIR}/Librairie)
 
-# --- Serveur ------------------------------------------------------------
-
-# Source unique déclaré : serveurReservation/Serveur.cpp
+# ===================== Serveur =====================
 add_executable(reservation_server
   ${CMAKE_SOURCE_DIR}/serveurReservation/Serveur.cpp
 )
@@ -61,7 +68,7 @@ target_link_libraries(reservation_server
   PRIVATE protocole librarie Threads::Threads
 )
 
-# Définir un chemin de conf par défaut (install + run local)
+# Définitions (chemin conf)
 target_compile_definitions(reservation_server PRIVATE
   DEFAULT_CONF_PATH="/etc/hospital-reservation/Serveur.conf"
   FALLBACK_CONF_PATH="${CMAKE_SOURCE_DIR}/serveurReservation/Serveur.conf"
@@ -81,32 +88,28 @@ install(TARGETS reservation_server RUNTIME DESTINATION bin)
 install(FILES ${CMAKE_SOURCE_DIR}/serveurReservation/Serveur.conf
         DESTINATION etc/hospital-reservation)
 
-# --- Client Qt ----------------------------------------------------------
-
-# Activer les outils Qt auto
+# ===================== Client Qt =====================
+# Auto MOC/UIC/RCC (on garde globalement ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# On prend tous les .cpp du dossier client, en excluant les fichiers générés moc_*
+# Sources du client (exclut moc_*.cpp)
 file(GLOB CLIENT_SOURCES
   "${CMAKE_SOURCE_DIR}/ClientConsultationBookerQt/*.cpp"
 )
-# Filtrer les moc_*.cpp s’ils existent déjà dans le dossier
 list(FILTER CLIENT_SOURCES EXCLUDE REGEX ".*/moc_.*\\.cpp$")
 
 add_executable(ClientConsultationBookerQt
   ${CLIENT_SOURCES}
 )
 
+# Désactiver AUTOUIC UNIQUEMENT pour ce binaire (tu as déjà ui_*.h, pas de .ui)
 set_target_properties(ClientConsultationBookerQt PROPERTIES AUTOUIC OFF)
 
-# Inclure le dossier client pour trouver mainwindow*.h
-target_include_directories(ClientConsultationBookerQt
-  PRIVATE ${CMAKE_SOURCE_DIR}/ClientConsultationBookerQt
-)
-
-# Lier Qt Widgets + tes libs internes si le client en dépend (au besoin)
+# Lier Qt Widgets + libs internes (si besoin du protocole/librairie côté client)
 target_link_libraries(ClientConsultationBookerQt
   PRIVATE ${QT_PACKAGE}::Widgets protocole librarie
 )
+
+# ===================== Fin =====================

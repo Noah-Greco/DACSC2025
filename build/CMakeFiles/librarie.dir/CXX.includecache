@@ -6,27 +6,3 @@
 
 #IncludeRegexTransform: 
 
-/home/student/DACSC2025/Librairie/Librairie.cpp
-stdio.h
--
-string.h
--
-errno.h
--
-unistd.h
--
-signal.h
--
-arpa/inet.h
--
-netinet/in.h
--
-sys/socket.h
--
-Librairie.hpp
-/home/student/DACSC2025/Librairie/Librairie.hpp
-
-/home/student/DACSC2025/Librairie/Librairie.hpp
-cstddef
--
-

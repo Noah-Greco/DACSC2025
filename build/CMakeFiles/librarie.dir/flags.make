@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/student/DACSC2025/param -I/home/student/DACSC2025/Protocole -I/home/student/DACSC2025/Librairie
+CXX_INCLUDES = -I/home/student/DACSC2025/param -I/home/student/DACSC2025/Protocole -I/home/student/DACSC2025/Librairie -I/home/student/DACSC2025/ClientConsultationBookerQt
 
 CXX_FLAGS = -g -Wall -Wextra -Wpedantic -std=c++17
 

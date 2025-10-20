@@ -37,6 +37,7 @@
 		"/usr/include/qt5/QtGui",
 		"/usr/include/qt5/QtCore",
 		"/usr/lib64/qt5/mkspecs/linux-g++",
+		"/usr/include/mysql",
 		"/usr/include/c++/8",
 		"/usr/include/c++/8/x86_64-redhat-linux",
 		"/usr/include/c++/8/backward",
