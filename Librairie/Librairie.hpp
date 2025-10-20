@@ -13,14 +13,16 @@ int Accept(int sckt_serveur,char *ipClient);
 
 //appelés par le processus client -->  prends en entrée l'ip sous forme de chaine de cara et le port du server sur le quel on veut se connecter retourne 
 //socket service qui permettra de communiquer avec le serveur 
-int ClientSocket(char* ipServeur,int portServeur);
+int ClientSocket(const char* ipServeur,int portServeur);
 
 //appelés par le processus client et le serveur --> recoit en parametre la socket de service, l'adresse mémoire d'un paquet de byte que l'on desire en voyer et 
 //la taille du packet de byte et retourne le nb de byte envoyés
-int Send(int sSocket,char* data,int taille);
+int Send(int sSocket,const char* data,int taille);
 
 //appelés par le processus client et serveur --> recois paquet de donnée envoyer par send() recoit en para la socket de service et  l’adresse d’un buffer de réception 
 //qui va revoir les données lues sur le réseau et retourne le nb de bytes lu
 int Receive(int sSocket,char* data);
+
+int closeSocket(int sSocket);
 
 #endif

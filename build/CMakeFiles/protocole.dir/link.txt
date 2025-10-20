@@ -1,2 +1,0 @@
-/usr/bin/ar qc libprotocole.a CMakeFiles/protocole.dir/Protocole/CBP.cpp.o
-/usr/bin/ranlib libprotocole.a

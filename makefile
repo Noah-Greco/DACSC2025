@@ -1,93 +1,95 @@
-# ==== Config ====
-APPS       := ClientTest ServeurTest ClientConsultationBookerQtApp
-CXX        ?= g++
-BUILD_DIR  := build
 
-CXXFLAGS   ?= -std=c++17 -Wall -Wextra -O2 -I./Librairie
-LDFLAGS    ?=
-LDLIBS     ?=
+# Compiler
+CXX = g++
 
-# ==== Détection Qt (Qt6 puis Qt5) ====
-QT_PKG :=
-ifneq ($(shell pkg-config --exists Qt6Widgets && echo yes),)
-  QT_PKG := Qt6Widgets
-else ifneq ($(shell pkg-config --exists Qt5Widgets && echo yes),)
-  QT_PKG := Qt5Widgets
-endif
+# Compiler flags
+CXXFLAGS = -Wall -Wextra -std=c++11
 
-QT_CFLAGS := $(if $(QT_PKG),$(shell pkg-config --cflags $(QT_PKG)))
-QT_LIBS   := $(if $(QT_PKG),$(shell pkg-config --libs $(QT_PKG)))
+# Directories
+BD_DIR = BD_Hospital
+CLIENT_DIR = ClientConsultationBookerQt
+LIBRARY_DIR = Librairie
+SERVEUR_DIR = serveurReservation
+PROTOCOLE_DIR = Protocole
+PARAM_DIR = param
 
-# ==== Sources communes (lib) ====
-SRCS_COMMON := Librairie/Librairie.cpp
+# Source files
+BD_SRC = $(BD_DIR)/CreationBD.cpp
+CLIENT_SRC = $(CLIENT_DIR)/main.cpp $(CLIENT_DIR)/mainwindowclientconsultationbooker.cpp $(CLIENT_DIR)/moc_mainwindowclientconsultationbooker.cpp $(LIBRARY_DIR)/Librairie.cpp
+SOCKET_SRC = $(LIBRARY_DIR)/Librairie.cpp
+SERVEUR_SRC = $(SERVEUR_DIR)/Serveur.cpp $(LIBRARY_DIR)/Librairie.cpp $(PROTOCOLE_DIR)/CBP.cpp
 
-# ==== Sources spécifiques ====
-SRCS_ClientTest   := ClientTest.cpp   $(SRCS_COMMON)
-SRCS_ServeurTest  := ServeurTest.cpp  $(SRCS_COMMON)
+# Header files
+SOCKET_HEADERS = $(LIBRARY_DIR)/Librairie.hpp
+PROTOCOLE_HEADERS = $(PROTOCOLE_DIR)/CBP.hpp
+UTIL_HEADERS = $(PARAM_DIR)/param.h
 
-SRCS_ClientConsultationBookerQt := \
-  ClientConsultationBookerQt/main.cpp \
-  ClientConsultationBookerQt/mainwindowclientconsultationbooker.cpp \
-  ClientConsultationBookerQt/moc_mainwindowclientconsultationbooker.cpp
+# Output binaries
+BD_BIN = $(BD_DIR)/CreationBD
+CLIENT_BIN = $(CLIENT_DIR)/ClientConsultationBooker
+SERVEUR_BIN = $(SERVEUR_DIR)/serveur
 
-# ==== Objets ====
-OBJ_ClientTest   := $(addprefix $(BUILD_DIR)/,$(SRCS_ClientTest:.cpp=.o))
-OBJ_ServeurTest  := $(addprefix $(BUILD_DIR)/,$(SRCS_ServeurTest:.cpp=.o))
-OBJ_ClientConsultationBookerQt := $(addprefix $(BUILD_DIR)/,$(SRCS_ClientConsultationBookerQt:.cpp=.o))
+# MySQL flags (headers + lib)
+MYSQL_CFLAGS = -I/usr/include/mysql
+MYSQL_LIBS = -lmysqlclient -lpthread -lz -lm -lrt -lssl -lcrypto -ldl
 
-DEPS := \
-  $(OBJ_ClientTest:.o=.d) \
-  $(OBJ_ServeurTest:.o=.d) \
-  $(OBJ_ClientConsultationBookerQt:.o=.d)
+# Qt flags (adjust if needed)
+QT_FLAGS = `pkg-config --cflags --libs Qt5Widgets`
 
-# ==== Règles principales ====
-.PHONY: all debug clean run run-client run-serveur run-qt
+# Default target
+all: bin $(BD_BIN) $(CLIENT_BIN) $(SERVEUR_BIN)
+	@echo "============================================"
+	@echo "Compilation terminée avec succès !"
+	@echo "Binaires créés :"
+	@echo "  - $(BD_BIN) (Creation de la base de données)"
+	@echo "  - $(CLIENT_BIN) (Client Qt)"
+	@echo "  - $(SERVEUR_BIN) (Serveur TCP)"
+	@echo "============================================"
 
-all: $(APPS)
+# Create bin directory
+bin:
 
-debug: CXXFLAGS := -std=c++17 -Wall -Wextra -g3 -O0 -I./Librairie
-debug: $(APPS)
+$(BD_BIN): $(BD_SRC)
+	@echo "Compilation de CreationBD..."
+	$(CXX) $(CXXFLAGS) -o $@ $< $(MYSQL_CFLAGS) -m64 -L/usr/lib64/mysql $(MYSQL_LIBS)
+	@echo "✓ $(BD_BIN) créé"
 
-# ---- Editions de liens ----
-ClientTest: $(OBJ_ClientTest)
-	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+$(BD_CLEAN_BIN): $(BD_CLEAN_SRC)
+	@echo "Compilation de CleanBD..."
+	$(CXX) $(CXXFLAGS) -o $@ $< $(MYSQL_CFLAGS) -m64 -L/usr/lib64/mysql $(MYSQL_LIBS)
+	@echo "✓ $(BD_CLEAN_BIN) créé"
 
-ServeurTest: $(OBJ_ServeurTest)
-	@mkdir -p $(dir $@)
-	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+$(CLIENT_BIN): $(CLIENT_SRC) $(SOCKET_HEADERS) $(UTIL_HEADERS)
+	@echo "Compilation du client Qt..."
+	$(CXX) $(CXXFLAGS) -fPIC -o $@ $(CLIENT_SRC) $(QT_FLAGS)
+	@echo "✓ $(CLIENT_BIN) créé"
 
-# exécutable renommé pour éviter la collision avec le dossier ClientConsultationBookerQt/
-ClientConsultationBookerQtApp: $(OBJ_ClientConsultationBookerQt)
-	@mkdir -p $(dir $@)
-	$(if $(QT_PKG),,@echo ">> ATTENTION: Qt non détecté (Qt5/Qt6). Installe Qt ou exporte PKG_CONFIG_PATH."; exit 2)
-	$(CXX) $(LDFLAGS) $^ $(LDLIBS) $(QT_LIBS) -o $@
+$(SERVEUR_BIN): $(SERVEUR_SRC) $(SOCKET_HEADERS) $(PROTOCOLE_HEADERS) $(UTIL_HEADERS)
+	@echo "Compilation du serveur..."
+	$(CXX) $(CXXFLAGS) -o $@ $(SERVEUR_SRC) -lpthread $(MYSQL_CFLAGS) -m64 -L/usr/lib64/mysql $(MYSQL_LIBS)
+	@echo "✓ $(SERVEUR_BIN) créé"
 
-# ---- Compilation générique ----
-$(BUILD_DIR)/%.o: %.cpp
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
-
-# ---- Compilation Qt (flags Qt + -fPIC) ----
-$(BUILD_DIR)/ClientConsultationBookerQt/%.o: ClientConsultationBookerQt/%.cpp
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(QT_CFLAGS) -I./ClientConsultationBookerQt -fPIC -MMD -MP -c $< -o $@
-
-# ---- Raccourcis d'exécution ----
-run: run-client
-
-run-client: ClientTest
-	./ClientTest 127.0.0.1 5000
-
-run-serveur: ServeurTest
-	./ServeurTest 5000
-
-run-qt: ClientConsultationBookerQtApp
-	./ClientConsultationBookerQtApp
+# Initialize database with sample data
+init-db: $(BD_BIN)
+	@echo "============================================"
+	@echo "Initialisation de la base de données..."
+	@echo "Création des tables et insertion des données..."
+	$(BD_BIN)
+	@echo "✓ Base de données initialisée avec succès"
+	@echo "Tables créées :"
+	@echo "  - specialties (spécialités médicales)"
+	@echo "  - doctors (médecins)"
+	@echo "  - patients (patients)"
+	@echo "  - consultations (consultations)"
+	@echo "============================================"
 
 clean:
-	@echo ">> nettoyage"
-	@rm -rf $(BUILD_DIR) $(APPS)
+	@echo "============================================"
+	@echo "Nettoyage en cours..."
+	@echo "Suppression des binaires..."
+	rm -f $(BD_BIN) $(CLIENT_BIN) $(SERVEUR_BIN)
+	@echo "✓ Binaires supprimés"
+	@echo "============================================"
+	@echo "Nettoyage terminé."
 
-# Inclure les .d si présents (ne casse pas si absents)
--include $(DEPS)
+.PHONY: all clean bin init-db

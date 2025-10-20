@@ -1,16 +1,25 @@
 #include "mainwindowclientconsultationbooker.h"
 #include "ui_mainwindowclientconsultationbooker.h"
+
 #include <QInputDialog>
 #include <QMessageBox>
 #include <iostream>
+#include <vector>
+#include <sstream>
+
 using namespace std;
 
 MainWindowClientConsultationBooker::MainWindowClientConsultationBooker(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindowClientConsultationBooker)
+    , ui(new Ui::MainWindowClientConsultationBooker), socketServeur(-1), connecte(false)
 {
     ui->setupUi(this);
     logoutOk();
+
+    if (!connecterServeur(ipServeur, portServeur))
+    {
+        dialogError("Erreur", "Impossible de se connecter au serveur");
+    }
 
     // Configuration de la table des employes (Personnel Garage)
     ui->tableWidgetConsultations->setColumnCount(5);
@@ -28,23 +37,11 @@ MainWindowClientConsultationBooker::MainWindowClientConsultationBooker(QWidget *
     int columnWidths[] = {40, 150, 200, 150, 100};
     for (int col = 0; col < 5; ++col)
         ui->tableWidgetConsultations->setColumnWidth(col, columnWidths[col]);
-
-    // Exemples d'utilisation (à supprimer)
-    this->addTupleTableConsultations(1,"Neurologie","Martin Claire","2025-10-01", "09:00");
-    this->addTupleTableConsultations(2,"Cardiologie","Lemoine Bernard","2025-10-06", "10:15");
-    this->addTupleTableConsultations(3,"Dermatologie","Maboul Paul","2025-10-23", "14:30");
-
-    //this->addComboBoxSpecialties("--- TOUTES ---");
-    this->addComboBoxSpecialties("Dermatologie");
-    this->addComboBoxSpecialties("Cardiologie");
-
-    //this->addComboBoxDoctors("--- TOUS ---");
-    this->addComboBoxDoctors("Martin Claire");
-    this->addComboBoxDoctors("Maboul Paul");
 }
 
 MainWindowClientConsultationBooker::~MainWindowClientConsultationBooker()
 {
+    deconnecterServeur();
     delete ui;
 }
 
@@ -246,7 +243,7 @@ int MainWindowClientConsultationBooker::dialogInputInt(const string& title,const
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///// Fonctions gestion des boutons (TO DO) //////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindowClientConsultationBooker::on_pushButtonLogin_clicked()
+/*void MainWindowClientConsultationBooker::on_pushButtonLogin_clicked()
 {
     string lastName = this->getLastName();
     string firstName = this->getFirstName();
@@ -284,4 +281,364 @@ void MainWindowClientConsultationBooker::on_pushButtonReserver_clicked()
     int selectedTow = this->getSelectionIndexTableConsultations();
 
     cout << "selectedRow = " << selectedTow << endl;
+}
+*/
+
+bool MainWindowClientConsultationBooker::connecterServeur(const string& ipServeur, int port)
+{
+    this->ipServeur = ipServeur;
+    this->portServeur = port;
+    
+    socketServeur = ClientSocket(ipServeur.c_str(), port);
+    if (socketServeur == -1)
+    {
+        connecte = false;
+        return connecte;
+    }
+    
+    connecte = true;
+    cout << "Connexion au serveur " << ipServeur << ":" << port << " réussie" << endl;
+    return connecte;
+}
+
+void MainWindowClientConsultationBooker::deconnecterServeur()
+{
+    if (connecte && socketServeur != -1)
+    {
+        closeSocket(socketServeur);
+        socketServeur = -1;
+        connecte = false;
+        cout << "Déconnexion du serveur" << endl;
+    }
+}
+
+bool MainWindowClientConsultationBooker::envoyerRequete(const string& requete, string& reponse)
+{
+    if (!connecte || socketServeur == -1)
+    {
+        cout << "Erreur: Pas connecté au serveur" << endl;
+        return false;
+    }
+    
+    if (Send(socketServeur, requete.c_str(), requete.length()) < 0)
+    {
+        cout << "Erreur envoi requête" << endl;
+        return false;
+    }
+    
+    char buffer[1024];
+    int nbRecu = Receive(socketServeur, buffer);
+    if (nbRecu < 0)
+    {
+        cout << "Erreur réception réponse" << endl;
+        return false;
+    }
+    
+    reponse = string(buffer);
+    cout << "Requête: " << requete << endl;
+    cout << "Réponse: " << reponse << endl;
+    return true;
+}
+
+void MainWindowClientConsultationBooker::closeEvent(QCloseEvent* event)
+{
+    deconnecterServeur();
+    QMainWindow::closeEvent(event);
+}
+
+bool MainWindowClientConsultationBooker::estConnecte() const
+{
+    return connecte;
+}
+
+bool MainWindowClientConsultationBooker::loginPatient(const string& nom, const string& prenom, int patientId, bool nouveauPatient)
+{
+    string requete = string(LOGIN) + diez + nom + diez + prenom + diez + to_string(patientId) + diez + (nouveauPatient ? "1" : "0");
+    string reponse;
+    
+    if (!envoyerRequete(requete, reponse))
+        return false;
+    
+    if (reponse.find(string(LOGIN) + diez + string(OK)) == 0)
+    {
+        cout << "Login réussi" << endl;
+        return true;
+    }
+    else
+    {
+        cout << "Erreur login: " << reponse << endl;
+        return false;
+    }
+}
+
+void MainWindowClientConsultationBooker::logoutPatient()
+{
+    string requete = LOGOUT;
+    string reponse;
+    
+    envoyerRequete(requete, reponse);
+    cout << "Logout effectué" << endl;
+}
+
+bool MainWindowClientConsultationBooker::chargerSpecialties()
+{
+    string requete = GET_SPECIALTIES;
+    string reponse;
+    
+    if (!envoyerRequete(requete, reponse))
+        return false;
+    
+    if (reponse.find(string(GET_SPECIALTIES) + diez + string(OK)) == 0)
+    {
+        clearComboBoxSpecialties();
+        addComboBoxSpecialties(TOUTES);
+        
+        // Format attendu: GET_SPECIALTIES#ok##nom1|nom2|nom3...
+        string data = reponse.substr(strlen(GET_SPECIALTIES) + 4); // Enlever "GET_SPECIALTIES#ok#"
+        
+        // Enlever le premier # s'il existe
+        if (!data.empty() && data[0] == '#') {
+            data = data.substr(1);
+        }
+        
+        // Parser les spécialités séparées par |
+        stringstream ss(data);
+        string specialite;
+        while (getline(ss, specialite, '|')) {
+            if (!specialite.empty()) {
+                addComboBoxSpecialties(specialite);
+            }
+        }
+        return true;
+    }
+    else
+    {
+        cout << "Erreur chargement spécialités: " << reponse << endl;
+        return false;
+    }
+}
+
+bool MainWindowClientConsultationBooker::chargerDocteurs()
+{
+    string requete = GET_DOCTORS;
+    string reponse;
+    
+    if (!envoyerRequete(requete, reponse))
+        return false;
+    
+    if (reponse.find(string(GET_DOCTORS) + diez + string(OK)) == 0)
+    {
+        clearComboBoxDoctors();
+        addComboBoxDoctors(TOUS);
+        
+        // Format attendu: GET_DOCTORS#ok##id1#nom1#specialite1|id2#nom2#specialite2|...
+        string data = reponse.substr(strlen(GET_DOCTORS) + 4); // Enlever "GET_DOCTORS#ok#"
+        
+        // Enlever le premier # s'il existe
+        if (!data.empty() && data[0] == '#') {
+            data = data.substr(1);
+        }
+        
+        // Parser les docteurs séparés par |
+        stringstream ss(data);
+        string docteurInfo;
+        while (getline(ss, docteurInfo, '|')) {
+            if (!docteurInfo.empty()) {
+                // Extraire le nom (deuxième champ) de "id#nom#specialite"
+                stringstream ssDocteur(docteurInfo);
+                string id, nom, specialite;
+                if (getline(ssDocteur, id, '#') && getline(ssDocteur, nom, '#')) {
+                    addComboBoxDoctors(nom);
+                }
+            }
+        }
+        return true;
+    }
+    else
+    {
+        cout << "Erreur chargement médecins: " << reponse << endl;
+        return false;
+    }
+}
+
+bool MainWindowClientConsultationBooker::rechercherConsultations(const string& specialite, const string& docteur, 
+                                                               const string& dateDebut, const string& dateFin)
+{
+    string requete = string(SEARCH_CONSULTATIONS) + diez + specialite + diez + docteur + diez + dateDebut + diez + dateFin;
+    string reponse;
+    
+    if (!envoyerRequete(requete, reponse))
+        return false;
+    
+    if (reponse.find(string(SEARCH_CONSULTATIONS) + diez + string(OK)) == 0)
+    {
+        clearTableConsultations();
+        
+        // Format attendu: SEARCH_CONSULTATIONS#ok##id1#docteur1#specialite1#date1#heure1|id2#docteur2#specialite2#date2#heure2|...
+        string data = reponse.substr(strlen(SEARCH_CONSULTATIONS) + 4); // Enlever "SEARCH_CONSULTATIONS#ok#"
+        
+        // Enlever le premier # s'il existe
+        if (!data.empty() && data[0] == '#') {
+            data = data.substr(1);
+        }
+        
+        // Exemple de format attendu pour 'data' :
+        // "12#Dr. Martin#Cardiologie#2025-10-15#09:00|15#Dr. Dupont#Dermatologie#2025-10-16#11:30|"
+        // Chaque consultation est séparée par '|', chaque champ par '#'
+        // id#docteur#specialite#date#heure|id#docteur#specialite#date#heure|...
+        //
+        // Après le parsing, on obtient pour chaque consultation :
+        //   id = 12, docteur = Dr. Martin, specialite = Cardiologie, date = 2025-10-15, heure = 09:00
+        //   id = 15, docteur = Dr. Dupont, specialite = Dermatologie, date = 2025-10-16, heure = 11:30
+        stringstream ss(data); // Utiliser stringstream pour le parsing
+        string consultation;
+        while (getline(ss, consultation, '|')) {
+            if (!consultation.empty()) {
+                // Pour chaque consultation, on extrait les champs séparés par '#'
+                stringstream ssConsultation(consultation);
+                string id, docteur, specialite, date, heure;
+                if (getline(ssConsultation, id, '#') && 
+                    getline(ssConsultation, docteur, '#') && 
+                    getline(ssConsultation, specialite, '#') && 
+                    getline(ssConsultation, date, '#') && 
+                    getline(ssConsultation, heure, '#')) {
+                    // Ici, on peut utiliser les valeurs extraites pour afficher dans le tableau
+                    if (!id.empty()) {
+                        addTupleTableConsultations(atoi(id.c_str()), specialite, docteur, date, heure);
+                    }
+                }
+            }
+        } // Fin du parsing des consultations
+        return true;
+    }
+    else
+    {
+        cout << "Erreur recherche consultations: " << reponse << endl;
+        return false;
+    }
+}
+
+bool MainWindowClientConsultationBooker::reserverConsultation(int consultationId, const string& raison)
+{
+    string requete = string(BOOK_CONSULTATION) + diez + to_string(consultationId) + diez + raison;
+    string reponse;
+    
+    if (!envoyerRequete(requete, reponse))
+        return false;
+    
+    if (reponse.find(string(BOOK_CONSULTATION) + diez + string(OK)) == 0)
+    {
+        cout << "Consultation réservée avec succès" << endl;
+        return true;
+    }
+    else
+    {
+        cout << "Erreur réservation: " << reponse << endl;
+        return false;
+    }
+}
+
+void MainWindowClientConsultationBooker::on_pushButtonLogin_clicked()
+{
+    string lastName = this->getLastName();
+    string firstName = this->getFirstName();
+    int patientId = this->getPatientId();
+    bool newPatient = this->isNewPatientSelected();
+
+    cout << "lastName = " << lastName << endl;
+    cout << "FirstName = " << firstName << endl;
+    cout << "patientId = " << patientId << endl;
+    cout << "newPatient = " << newPatient << endl;
+
+    if (!estConnecte())
+    {
+        dialogError("Erreur", "Pas connecté au serveur");
+        return;
+    }
+
+    if (loginPatient(lastName, firstName, patientId, newPatient))
+    {
+        loginOk();
+        chargerSpecialties();
+        chargerDocteurs();
+    }
+    else
+    {
+        dialogError("Erreur", "Échec de la connexion");
+    }
+}
+
+void MainWindowClientConsultationBooker::on_pushButtonLogout_clicked()
+{
+    if (estConnecte())
+    {
+        logoutPatient();
+    }
+    logoutOk();
+}
+
+void MainWindowClientConsultationBooker::on_pushButtonRechercher_clicked()
+{
+    string specialty = this->getSelectionSpecialty();
+    string doctor = this->getSelectionDoctor();
+    string startDate = this->getStartDate();
+    string endDate = this->getEndDate();
+
+    cout << "specialty = " << specialty << endl;
+    cout << "doctor = " << doctor << endl;
+    cout << "startDate = " << startDate << endl;
+    cout << "endDate = " << endDate << endl;
+
+    if (!estConnecte())
+    {
+        dialogError("Erreur", "Pas connecté au serveur");
+        return;
+    }
+
+    if (rechercherConsultations(specialty, doctor, startDate, endDate))
+    {
+        dialogMessage("Recherche", "Recherche effectuée avec succès");
+    }
+    else
+    {
+        dialogError("Erreur", "Échec de la recherche");
+    }
+}
+
+void MainWindowClientConsultationBooker::on_pushButtonReserver_clicked()
+{
+    int selectedRow = this->getSelectionIndexTableConsultations();
+
+    cout << "selectedRow = " << selectedRow << endl;
+
+    if (selectedRow < 0)
+    {
+        dialogError("Erreur", "Veuillez sélectionner une consultation");
+        return;
+    }
+
+    if (!estConnecte())
+    {
+        dialogError("Erreur", "Pas connecté au serveur");
+        return;
+    }
+
+    string raison = dialogInputText("Réservation", "Raison de la consultation:");
+    if (raison.empty())
+    {
+        dialogError("Erreur", "Raison de consultation requise");
+        return;
+    }
+
+    int consultationId = ui->tableWidgetConsultations->item(selectedRow, 0)->text().toInt();
+
+    if (reserverConsultation(consultationId, raison))
+    {
+        dialogMessage("Réservation", "Consultation réservée avec succès");
+        on_pushButtonRechercher_clicked();
+    }
+    else
+    {
+        dialogError("Erreur", "Échec de la réservation");
+    }
 }

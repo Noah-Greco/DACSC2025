@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <string>
+#include "../Librairie/Librairie.hpp"
+#include "../param/param.h"
 using namespace std;
 
 QT_BEGIN_NAMESPACE
@@ -50,6 +52,27 @@ public:
     string dialogInputText(const string& title,const string& question);
     int dialogInputInt(const string& title,const string& question);
 
+    bool connecterServeur(const string& ipServeur, int port);
+    
+    void deconnecterServeur();
+    
+    bool envoyerRequete(const string& requete, string& reponse);
+    
+    bool estConnecte() const;
+    
+    bool loginPatient(const string& nom, const string& prenom, int patientId, bool nouveauPatient);
+    
+    void logoutPatient();
+    
+    bool chargerSpecialties();
+    
+    bool chargerDocteurs();
+    
+    bool rechercherConsultations(const string& specialite, const string& docteur, 
+                                const string& dateDebut, const string& dateFin);
+    
+    bool reserverConsultation(int consultationId, const string& raison);
+
 
 private slots:
     void on_pushButtonLogin_clicked();
@@ -59,5 +82,13 @@ private slots:
 
 private:
     Ui::MainWindowClientConsultationBooker *ui;
+    
+    int socketServeur;
+    bool connecte;
+    string ipServeur = DEFAULT_SERVER_IP;
+    int portServeur = DEFAULT_SERVER_PORT;
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 };
 #endif // MAINWINDOWCLIENTCONSULTATIONBOOKER_H

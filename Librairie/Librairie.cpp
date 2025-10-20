@@ -60,7 +60,7 @@ int Accept(int sEcoute, char *ipClient) {
 
 // --- ClientSocket ---
 // Crée un socket TCP et connecte vers ipServeur:portServeur.
-int ClientSocket(char* ipServeur, int portServeur) {
+int ClientSocket(const char* ipServeur, int portServeur) {
     if (ipServeur == NULL) {
         errno = EINVAL;
         return -1;
@@ -93,7 +93,7 @@ int ClientSocket(char* ipServeur, int portServeur) {
 // --- Send ---
 // Envoie exactement 'taille' octets en bouclant sur send().
 // Retourne le nombre total d’octets envoyés ou -1 si échec.
-int Send(int sSocket, char* data, int taille) {
+int Send(int sSocket, const char* data, int taille) {
     if (data == NULL || taille < 0) {
         errno = EINVAL;
         return -1;
@@ -144,4 +144,13 @@ int Receive(int sSocket, char* data) {
     }
 
     return (int)n;
+}
+
+int closeSocket(int sSocket)
+{
+    if (close(sSocket) < 0)
+    {
+        return -1;
+    }
+    return 0;
 }
