@@ -1,5 +1,6 @@
 #include "CBP.hpp"
 #include <string.h>
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,9 +10,9 @@
 bool CBP(char* requete, char* reponse,int socket);
 char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
 void CBP_Logout(int socket);
-const char * CBP_Get_Specialties();
-const char * CBP_Get_Doctors();
-const char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
+char * CBP_Get_Specialties();
+char * CBP_Get_Doctors();
+char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
 void CBP_Book_Consultation(char* consultationId, char* reason, int id);
 
 int estPresent(int socket);
@@ -53,34 +54,66 @@ bool CBP(char* requete, char* reponse,int socket)
 			if (res && strcmp(res, "NON") != 0) free(res);  // si CBP_Login a alloué
 
 		}
+		return false;
 	}
 
 	if (strcmp(ptr,"LOGOUT") == 0)
 	{
 		CBP_Logout(socket);
-	}
-	
-	if(strcmp(ptr, "GET_SPECIALTIES") == 0)
-	{
-		CBP_Get_Specialties();
+		return true;
 	}
 
-	if(strcmp(ptr, "GET_DOCTORS") == 0)
+	if (strcmp(ptr, "GET_SPECIALTIES") == 0) 
 	{
-		CBP_Get_Doctors();
+    	char* res = CBP_Get_Specialties();  // "id;nom#..."
+    	if (res) 
+    	{
+        	snprintf(reponse, 200, "GET_SPECIALTIES#ok#%s", res);
+        	free(res);
+    	} 
+	    else 
+	    {
+	        snprintf(reponse, 200, "GET_SPECIALTIES#ko");
+	    }
+	    return false;
 	}
 
-	//on envoie le nom du docteur puis on récupère son ID ou on envoie son id directement ?
-	//on doit récupérer date de fin mais à quoi elle sert ?
-	if(strcmp(ptr, "SEARCH_CONSULTATIONS") == 0) 
+	if (strcmp(ptr, "GET_DOCTORS") == 0) 
 	{
-		char * specialties = strtok(NULL, "#");
-		char * doctors = strtok(NULL, "#");
-		char * startDate = strtok(NULL, "#");
-		char * endDate = strtok(NULL, "#");
-
-		CBP_Search_Consultations(specialties, doctors, startDate, endDate);
+    	char* res = CBP_Get_Doctors();
+    	if (res) 
+    	{
+        	snprintf(reponse, 200, "GET_DOCTORS#ok#%s", res);
+        	free(res);
+    	} 
+	    else 
+	    {
+	        snprintf(reponse, 200, "GET_DOCTORS#ko");
+	    }
+	    return false;
 	}
+
+    if (strcmp(ptr, "SEARCH_CONSULTATIONS") == 0)
+	{
+	    char *specialty  = strtok(NULL, "#");
+	    char *doctor     = strtok(NULL, "#");
+	    char *startDate  = strtok(NULL, "#");
+	    char *endDate    = strtok(NULL, "#");
+
+	    // garde-fous simples
+	    if (!specialty) specialty = (char*)"*";
+	    if (!doctor)    doctor    = (char*)"*";
+	    if (!startDate) startDate = (char*)"";
+	    if (!endDate)   endDate   = (char*)"";
+
+	    char *data = CBP_Search_Consultations(specialty, doctor, startDate, endDate);
+
+	    // Toujours renvoyer ok#, data possiblement vide
+	    snprintf(reponse, 200, "SEARCH_CONSULTATIONS#ok#%s", (data ? data : ""));
+	    if (data) free(data);
+	    return false; // ne pas fermer la connexion
+	}
+
 
 	if(strcmp(ptr, "BOOK_CONSULTATION") == 0)
 	{
@@ -266,8 +299,7 @@ char * CBP_Login(const char* firstName,const char* lastName, const char * NoPati
 
 			}
 		}
-	}
-		
+	}	
 }
 
 
@@ -278,227 +310,127 @@ void CBP_Logout(int socket)
 	retire(socket);
 }
 
-const char * CBP_Get_Specialties()
+char* CBP_Get_Specialties()
 {
-	MYSQL * connection;
-	connection = mysql_init(NULL);
+    MYSQL* conn = mysql_init(nullptr);
+    if (!conn) return nullptr;
+    if (!mysql_real_connect(conn,"localhost","Student","PassStudent1_","PourStudent",0,nullptr,0)) {
+        mysql_close(conn); return nullptr;
+    }
+    if (mysql_query(conn, "SELECT id, name FROM specialties;")) {
+        mysql_close(conn); return nullptr;
+    }
 
-	if(!connection)
-	{
-		fprintf(stderr, "mysql_init failed\n");
-	}
+    MYSQL_RES* res = mysql_store_result(conn);
+    if (!res) { mysql_close(conn); return nullptr; }
 
-	else
-	{
-		if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
-		{
-			fprintf(stderr, "connect : %s\n", mysql_error(connection));
-		}
-		else
-		{
-			if(mysql_query(connection, "SELECT * FROM specialties;"))
-			{
-				fprintf(stderr, "Query : %s\n", mysql_error(connection));
-				mysql_close(connection);
-			}
+    std::string out;                // "id;nom#id;nom#..."
+    MYSQL_ROW row; bool first = true;
+    while ((row = mysql_fetch_row(res)) != nullptr) {
+        if (!row[0] || !row[1]) continue;
+        if (!first) out.push_back('#');
+        out += row[0];
+        out.push_back(';');
+        out += row[1];
+        first = false;
+    }
 
-			else
-			{
-				MYSQL_RES * res = mysql_store_result(connection);
+    mysql_free_result(res);
+    mysql_close(conn);
 
-				if(!res)
-				{
-					fprintf(stderr, "store_result : %s\n", mysql_error(connection));
-					mysql_close(connection);
-				}
-
-				else
-				{
-					MYSQL_ROW row;
-
-					char valRet[500];
-
-					row = mysql_fetch_row(res);
-
-					strcpy(valRet, row[0]);
-					strcat(valRet, ";");
-					strcat(valRet, row[1]);
-
-					while((row = mysql_fetch_row(res)) != NULL)
-					{
-						strcat(valRet, "#");
-						strcat(valRet, row[0]);
-						strcat(valRet, ";");
-						strcat(valRet, row[1]);
-					}
-
-
-					mysql_free_result(res);
-					mysql_close(connection);
-
-					return valRet;
-				}
-			}
-		}
-	}
+    if (out.empty()) return nullptr;
+    return strdup(out.c_str());     // free() côté appelant
 }
 
-const char * CBP_Get_Doctors()
+char* CBP_Get_Doctors()
 {
-	MYSQL * connection;
-	connection = mysql_init(NULL);
+    MYSQL* conn = mysql_init(nullptr);
+    if (!conn) return nullptr;
+    if (!mysql_real_connect(conn,"localhost","Student","PassStudent1_","PourStudent",0,nullptr,0)) {
+        mysql_close(conn); return nullptr;
+    }
+    if (mysql_query(conn, "SELECT id, specialty_id, last_name, first_name FROM doctors;")) {
+        mysql_close(conn); return nullptr;
+    }
 
-	if(!connection)
-	{
-		fprintf(stderr, "mysql_init failed\n");
-	}
+    MYSQL_RES* res = mysql_store_result(conn);
+    if (!res) { mysql_close(conn); return nullptr; }
 
-	else
-	{						// connexion db , ip     ,  user    , mdp           ,   bduse,      
-		if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
-		{
-			fprintf(stderr, "connect : %s\n", mysql_error(connection));
-		}
+    // Format: id;last_name;first_name;specialty_id#id;last_name;first_name;specialty_id...
+    std::string out;
+    MYSQL_ROW row; bool first = true;
+    while ((row = mysql_fetch_row(res)) != nullptr) {
+        if (!row[0] || !row[1] || !row[2] || !row[3]) continue;
+        if (!first) out.push_back('#');
+        out += row[0];          // id
+        out.push_back(';');
+        out += row[2];          // last_name
+        out.push_back(';');
+        out += row[3];          // first_name
+        out.push_back(';');
+        out += row[1];          // specialty_id
+        first = false;
+    }
 
-		else
-		{
-			if(mysql_query(connection, "SELECT * FROM doctors;"))
-			{
-				fprintf(stderr, "Query : %s\n", mysql_error(connection));
-				mysql_close(connection);
-			}
+    mysql_free_result(res);
+    mysql_close(conn);
 
-			else
-			{
-				MYSQL_RES * res = mysql_store_result(connection);
-
-				if(!res)
-				{
-					fprintf(stderr, "store_result : %s\n", mysql_error(connection));
-					mysql_close(connection);
-				}
-
-				else
-				{
-					MYSQL_ROW row; //var de type ligne bdd 
-					char DocRet[500];
-					row = mysql_fetch_row(res);
-					//permet de faire en sorte d'arriver au 1er
-					strcpy(DocRet, row[0]);
-					strcat(DocRet, ";");
-					strcat(DocRet, row[1]);
-					strcat(DocRet, ";");
-					strcat(DocRet, row[2]);
-					strcat(DocRet, ";");
-					strcat(DocRet, row[3]);
-
-
-					while((row = mysql_fetch_row(res)) != NULL)
-					{
-						strcat(DocRet, "#");
-						strcat(DocRet, row[0]);
-						strcat(DocRet, ";");
-						strcat(DocRet, row[1]);
-						strcat(DocRet, ";");
-						strcat(DocRet, row[2]);
-						strcat(DocRet, ";");
-						strcat(DocRet, row[3]);
-					}
-
-					mysql_free_result(res);
-					mysql_close(connection);
-
-					return DocRet; 
-				}
-			}
-
-		}
-	}
+    if (out.empty()) return nullptr;
+    return strdup(out.c_str());   // free() côté appelant
 }
 
-const char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin)
+char* CBP_Search_Consultations(const char* specialties, char* doctorKey, char* dateDeb, char* dateFin)
 {
-	MYSQL * connection;
-	connection = mysql_init(NULL);
+    MYSQL *conn = mysql_init(nullptr);
+    if (!conn) return nullptr;
+    if (!mysql_real_connect(conn,"localhost","Student","PassStudent1_","PourStudent",0,nullptr,0)) {
+        mysql_close(conn); return nullptr;
+    }
 
-	if(!connection)
-	{
-		fprintf(stderr, "mysql_init failed\n");
-	}
+    // Filtre: par spécialité OU par nom de famille du docteur
+    // Cols: id, docteur "Last First", spécialité, date, heure
+    char sql[512];
+    snprintf(sql, sizeof sql,
+        "SELECT c.id, CONCAT(d.last_name,' ',d.first_name) AS doctor, "
+        "s.name AS spec, DATE_FORMAT(c.date,'%%Y-%%m-%%d') AS d, c.hour AS h "
+        "FROM consultations c "
+        "JOIN doctors d ON c.doctor_id = d.id "
+        "JOIN specialties s ON d.specialty_id = s.id "
+        "WHERE c.patient_id IS NULL "
+        "AND (s.name = '%s' OR d.last_name = '%s') "
+        "AND c.date BETWEEN '%s' AND '%s';",
+        specialties, doctorKey, dateDeb, dateFin);
 
-	else
-	{
-		if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
-		{
-			fprintf(stderr, "connect : %s\n", mysql_error(connection));
-		}
+    if (mysql_query(conn, sql)) {
+        mysql_close(conn); return nullptr;
+    }
 
-		else
-		{
-			char sql_cmd[500];
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (!res) { mysql_close(conn); return nullptr; }
 
-			sprintf(sql_cmd, 
-            "select consultations.id, specialties.name, CONCAT(doctors.last_name, ' ', doctors.first_name), DATE_FORMAT(consultations.date, '%%Y-%%m-%%d'), hour from consultations "
-            "inner join doctors on consultations.doctor_id = doctors.id inner join specialties on doctors.specialty_id = specialties.id where patient_id is NULL and (specialties.name = '%s' "
-            "or doctors.last_name = '%s') and date between '%s' and '%s';", specialties, id, dateDeb, dateFin);
+    std::string out; // id#docteur#specialite#date#heure|...
+    MYSQL_ROW row;
+    bool first = true;
+    while ((row = mysql_fetch_row(res)) != nullptr) {
+        // row[0]=id, row[1]=doctor, row[2]=spec, row[3]=date, row[4]=hour
+        if (!row[0] || !row[1] || !row[2] || !row[3] || !row[4]) continue;
+        if (!first) out.push_back('|');
+        out += row[0]; out.push_back('#');
+        out += row[1]; out.push_back('#');
+        out += row[2]; out.push_back('#');
+        out += row[3]; out.push_back('#');
+        out += row[4];
+        first = false;
+    }
 
-			if(mysql_query(connection, sql_cmd))
-			{
-				fprintf(stderr, "Query : %s\n", mysql_error(connection));
-				mysql_close(connection);
-			}
+    mysql_free_result(res);
+    mysql_close(conn);
 
-			else
-			{
-				MYSQL_RES * res = mysql_store_result(connection);
-
-				if(!res)
-				{
-					fprintf(stderr, "store_result : %s\n", mysql_error(connection));
-					mysql_close(connection);
-				}
-
-				else
-				{
-					MYSQL_ROW row;
-					char ConsRet[500];
-					row = mysql_fetch_row(res);
-					strcpy(ConsRet, row[0]);
-					strcat(ConsRet, ";");
-					strcat(ConsRet, row[1]);
-					strcat(ConsRet, ";");
-					strcat(ConsRet, row[2]);
-					strcat(ConsRet, ";");
-					strcat(ConsRet, row[3]);
-					strcat(ConsRet, ";");
-					strcat(ConsRet, row[4]);
-					strcat(ConsRet, ";");
-					strcat(ConsRet, row[5]);
-					while((row = mysql_fetch_row(res)) != NULL)
-					{
-						strcat(ConsRet, "#");
-						strcat(ConsRet, row[0]);
-						strcat(ConsRet, ";");
-						strcat(ConsRet, row[1]);
-						strcat(ConsRet, ";");
-						strcat(ConsRet, row[2]);
-						strcat(ConsRet, ";");
-						strcat(ConsRet, row[3]);
-						strcat(ConsRet, ";");
-						strcat(ConsRet, row[4]);
-						strcat(ConsRet, ";");
-						strcat(ConsRet, row[5]);
-					}
-
-					mysql_free_result(res);
-					mysql_close(connection);
-					return ConsRet;
-				}
-			}
-
-		}
-	}
+    if (out.empty()) return strdup("");   // pas d’erreur, juste vide
+    return strdup(out.c_str());           // free() côté appelant
 }
+
+
 
 void CBP_Book_Consultation(char* consultationId, char* reason, int id)
 {

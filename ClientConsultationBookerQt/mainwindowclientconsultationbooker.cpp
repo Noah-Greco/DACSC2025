@@ -382,141 +382,142 @@ void MainWindowClientConsultationBooker::logoutPatient()
 
 bool MainWindowClientConsultationBooker::chargerSpecialties()
 {
-    string requete = GET_SPECIALTIES;
-    string reponse;
-    
-    if (!envoyerRequete(requete, reponse))
-        return false;
-    
-    if (reponse.find(string(GET_SPECIALTIES) + diez + string(OK)) == 0)
-    {
-        clearComboBoxSpecialties();
-        addComboBoxSpecialties(TOUTES);
-        
-        // Format attendu: GET_SPECIALTIES#ok##nom1|nom2|nom3...
-        string data = reponse.substr(strlen(GET_SPECIALTIES) + 4); // Enlever "GET_SPECIALTIES#ok#"
-        
-        // Enlever le premier # s'il existe
-        if (!data.empty() && data[0] == '#') {
-            data = data.substr(1);
-        }
-        
-        // Parser les spécialités séparées par |
-        stringstream ss(data);
-        string specialite;
-        while (getline(ss, specialite, '|')) {
-            if (!specialite.empty()) {
-                addComboBoxSpecialties(specialite);
-            }
-        }
-        return true;
-    }
-    else
-    {
-        cout << "Erreur chargement spécialités: " << reponse << endl;
+    std::string requete = GET_SPECIALTIES;
+    std::string reponse;
+    if (!envoyerRequete(requete, reponse)) return false;
+
+    const std::string prefix = std::string(GET_SPECIALTIES) + "#" + std::string(OK) + "#";
+    if (reponse.rfind(prefix, 0) != 0) {
+        std::cout << "Erreur chargement spécialités: " << reponse << std::endl;
         return false;
     }
+
+    std::string payload = reponse.substr(prefix.size()); // "id;nom#id;nom#..."
+    clearComboBoxSpecialties();
+    addComboBoxSpecialties(TOUTES);
+
+    std::stringstream ss(payload);
+    std::string item;
+    while (std::getline(ss, item, '#')) {
+        if (item.empty()) continue;
+        size_t p = item.find(';');
+        if (p == std::string::npos || p+1 >= item.size()) continue;
+        // id: item.substr(0, p)  // si besoin plus tard
+        std::string nom = item.substr(p+1);
+        if (!nom.empty()) addComboBoxSpecialties(nom);
+    }
+    return true;
 }
+
 
 bool MainWindowClientConsultationBooker::chargerDocteurs()
 {
-    string requete = GET_DOCTORS;
-    string reponse;
-    
-    if (!envoyerRequete(requete, reponse))
-        return false;
-    
-    if (reponse.find(string(GET_DOCTORS) + diez + string(OK)) == 0)
-    {
-        clearComboBoxDoctors();
-        addComboBoxDoctors(TOUS);
-        
-        // Format attendu: GET_DOCTORS#ok##id1#nom1#specialite1|id2#nom2#specialite2|...
-        string data = reponse.substr(strlen(GET_DOCTORS) + 4); // Enlever "GET_DOCTORS#ok#"
-        
-        // Enlever le premier # s'il existe
-        if (!data.empty() && data[0] == '#') {
-            data = data.substr(1);
-        }
-        
-        // Parser les docteurs séparés par |
-        stringstream ss(data);
-        string docteurInfo;
-        while (getline(ss, docteurInfo, '|')) {
-            if (!docteurInfo.empty()) {
-                // Extraire le nom (deuxième champ) de "id#nom#specialite"
-                stringstream ssDocteur(docteurInfo);
-                string id, nom, specialite;
-                if (getline(ssDocteur, id, '#') && getline(ssDocteur, nom, '#')) {
-                    addComboBoxDoctors(nom);
-                }
-            }
-        }
-        return true;
-    }
-    else
-    {
-        cout << "Erreur chargement médecins: " << reponse << endl;
+    std::string requete = GET_DOCTORS;
+    std::string reponse;
+    if (!envoyerRequete(requete, reponse)) return false;
+
+    const std::string prefix = std::string(GET_DOCTORS) + "#" + std::string(OK) + "#";
+    if (reponse.rfind(prefix, 0) != 0) {
+        std::cout << "Erreur chargement médecins: " << reponse << std::endl;
         return false;
     }
+
+    std::string payload = reponse.substr(prefix.size()); // "id;last;first;spec#..."
+    clearComboBoxDoctors();
+    addComboBoxDoctors(TOUS);
+
+    std::stringstream ss(payload);
+    std::string item;
+    while (std::getline(ss, item, '#')) {
+        if (item.empty()) continue;
+
+        // Découper "id;last;first;spec"
+        size_t p1 = item.find(';');
+        if (p1 == std::string::npos) continue;
+        size_t p2 = item.find(';', p1 + 1);
+        if (p2 == std::string::npos) continue;
+        size_t p3 = item.find(';', p2 + 1);
+        if (p3 == std::string::npos) continue;
+
+        // id: item.substr(0, p1)          // si besoin
+        std::string last  = item.substr(p1 + 1, p2 - (p1 + 1));
+        std::string first = item.substr(p2 + 1, p3 - (p2 + 1));
+        // specialty_id: item.substr(p3 + 1) // si besoin
+
+        if (!last.empty() || !first.empty()) {
+            addComboBoxDoctors(last + " " + first);
+        }
+    }
+    return true;
 }
 
-bool MainWindowClientConsultationBooker::rechercherConsultations(const string& specialite, const string& docteur, 
-                                                               const string& dateDebut, const string& dateFin)
+
+bool MainWindowClientConsultationBooker::rechercherConsultations(const std::string& specialiteUi,
+                                                                 const std::string& docteurUi,
+                                                                 const std::string& dateDebut,
+                                                                 const std::string& dateFin)
 {
-    string requete = string(SEARCH_CONSULTATIONS) + diez + specialite + diez + docteur + diez + dateDebut + diez + dateFin;
-    string reponse;
-    
-    if (!envoyerRequete(requete, reponse))
-        return false;
-    
-    if (reponse.find(string(SEARCH_CONSULTATIONS) + diez + string(OK)) == 0)
-    {
-        clearTableConsultations();
-        
-        // Format attendu: SEARCH_CONSULTATIONS#ok##id1#docteur1#specialite1#date1#heure1|id2#docteur2#specialite2#date2#heure2|...
-        string data = reponse.substr(strlen(SEARCH_CONSULTATIONS) + 4); // Enlever "SEARCH_CONSULTATIONS#ok#"
-        
-        // Enlever le premier # s'il existe
-        if (!data.empty() && data[0] == '#') {
-            data = data.substr(1);
-        }
-        
-        // Exemple de format attendu pour 'data' :
-        // "12#Dr. Martin#Cardiologie#2025-10-15#09:00|15#Dr. Dupont#Dermatologie#2025-10-16#11:30|"
-        // Chaque consultation est séparée par '|', chaque champ par '#'
-        // id#docteur#specialite#date#heure|id#docteur#specialite#date#heure|...
-        //
-        // Après le parsing, on obtient pour chaque consultation :
-        //   id = 12, docteur = Dr. Martin, specialite = Cardiologie, date = 2025-10-15, heure = 09:00
-        //   id = 15, docteur = Dr. Dupont, specialite = Dermatologie, date = 2025-10-16, heure = 11:30
-        stringstream ss(data); // Utiliser stringstream pour le parsing
-        string consultation;
-        while (getline(ss, consultation, '|')) {
-            if (!consultation.empty()) {
-                // Pour chaque consultation, on extrait les champs séparés par '#'
-                stringstream ssConsultation(consultation);
-                string id, docteur, specialite, date, heure;
-                if (getline(ssConsultation, id, '#') && 
-                    getline(ssConsultation, docteur, '#') && 
-                    getline(ssConsultation, specialite, '#') && 
-                    getline(ssConsultation, date, '#') && 
-                    getline(ssConsultation, heure, '#')) {
-                    // Ici, on peut utiliser les valeurs extraites pour afficher dans le tableau
-                    if (!id.empty()) {
-                        addTupleTableConsultations(atoi(id.c_str()), specialite, docteur, date, heure);
-                    }
-                }
+    // Normalisation vers le protocole
+    std::string spec = (specialiteUi.rfind("---",0)==0 ? "*" : specialiteUi);
+    std::string doc  = (docteurUi.rfind("---",0)==0 ? "*" : docteurUi);
+
+    // Optionnel: si doc = "Nom Prénom", n’envoyer que le nom de famille
+    if (doc != "*" ) {
+        size_t sp = doc.find(' ');
+        if (sp != std::string::npos) doc = doc.substr(0, sp);
+    }
+
+    std::string requete = std::string(SEARCH_CONSULTATIONS) + diez
+                        + spec + diez + doc + diez + dateDebut + diez + dateFin;
+
+    std::string reponse;
+    if (!envoyerRequete(requete, reponse)) return false;
+
+    const std::string okPrefix = std::string(SEARCH_CONSULTATIONS) + "#" + std::string(OK) + "#";
+    const std::string koPrefix = std::string(SEARCH_CONSULTATIONS) + "#ko";
+
+    clearTableConsultations();
+
+    if (reponse.rfind(okPrefix, 0) == 0) {
+        std::string payload = reponse.substr(okPrefix.size()); // "id#docteur#spec#date#heure|..."
+        if (payload.empty()) return true;
+
+        size_t start = 0;
+        while (start <= payload.size()) {
+            size_t bar = payload.find('|', start);
+            std::string rec = payload.substr(start, (bar==std::string::npos)?std::string::npos:bar-start);
+            if (!rec.empty()) {
+                size_t p1 = rec.find('#'); if (p1==std::string::npos) goto next;
+                size_t p2 = rec.find('#',p1+1); if (p2==std::string::npos) goto next;
+                size_t p3 = rec.find('#',p2+1); if (p3==std::string::npos) goto next;
+                size_t p4 = rec.find('#',p3+1); if (p4==std::string::npos) goto next;
+
+                std::string id    = rec.substr(0, p1);
+                std::string docNm = rec.substr(p1+1, p2-(p1+1));
+                std::string specN = rec.substr(p2+1, p3-(p2+1));
+                std::string date  = rec.substr(p3+1, p4-(p3+1));
+                std::string heure = rec.substr(p4+1);
+
+                if (!id.empty())
+                    addTupleTableConsultations(std::atoi(id.c_str()), specN, docNm, date, heure);
             }
-        } // Fin du parsing des consultations
+        next:
+            if (bar==std::string::npos) break;
+            start = bar + 1;
+        }
         return true;
     }
-    else
-    {
-        cout << "Erreur recherche consultations: " << reponse << endl;
-        return false;
+
+    // Traite "ko" comme zéro résultat pour éviter la pop-up d’erreur si la requête est valide mais vide
+    if (reponse.rfind(koPrefix, 0) == 0) {
+        return true; // pas d’erreur, juste aucun résultat
     }
+
+    std::cout << "Erreur recherche consultations: " << reponse << std::endl;
+    return false;
 }
+
+
 
 bool MainWindowClientConsultationBooker::reserverConsultation(int consultationId, const string& raison)
 {
@@ -641,4 +642,15 @@ void MainWindowClientConsultationBooker::on_pushButtonReserver_clicked()
     {
         dialogError("Erreur", "Échec de la réservation");
     }
+}
+
+int MainWindowClientConsultationBooker::getSelectedConsultationId()
+{
+    int row = getSelectionIndexTableConsultations();
+    if (row == -1) return -1;
+
+    QTableWidgetItem *item = ui->tableWidgetConsultations->item(row, 0);
+    if (!item) return -1;
+
+    return item->text().toInt();
 }

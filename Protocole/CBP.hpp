@@ -16,9 +16,9 @@
 bool CBP(char* requete, char* reponse,int socket);
 char * CBP_Login(const char* user,const char* password);
 void CBP_Logout(int socket);
-const char * CBP_Get_Specialties();
-const char * CBP_Get_Doctors();
-const char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
+char * CBP_Get_Specialties();
+char * CBP_Get_Doctors();
+char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
 void CBP_Book_Consultation(char* consultationId, char* reason, int id);
 int estPresent(int socket);
 void ajoute(int socket);
