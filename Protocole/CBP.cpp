@@ -431,7 +431,6 @@ char* CBP_Search_Consultations(const char* specialties, char* doctorKey, char* d
 }
 
 
-
 void CBP_Book_Consultation(char* consultationId, char* reason, int id)
 {
 	MYSQL * connection;
