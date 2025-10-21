@@ -13,7 +13,7 @@ void CBP_Logout(int socket);
 char * CBP_Get_Specialties();
 char * CBP_Get_Doctors();
 char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
-void CBP_Book_Consultation(char* consultationId, char* reason, int id);
+bool CBP_Book_Consultation(char* consultationId, const char* reason, int id);
 
 int estPresent(int socket);
 void ajoute(int socket);
@@ -115,15 +115,20 @@ bool CBP(char* requete, char* reponse,int socket)
 	}
 
 
-	if(strcmp(ptr, "BOOK_CONSULTATION") == 0)
-	{
-		char * cons_id = strtok(NULL, "#");
-		char * reason = strtok(NULL, "#");
-		char * id = strtok(NULL, "#");
-		int ID = atoi(id);
-
-		CBP_Book_Consultation(cons_id, reason, ID);
-	}
+	if (strcmp(ptr, "BOOK_CONSULTATION") == 0)
+    {
+        char* cons_id = strtok(NULL, "#");
+        char* reason  = strtok(NULL, "#");
+        char* idStr   = strtok(NULL, "#");
+        if (!cons_id || !reason || !idStr) {
+            snprintf(reponse, 200, "BOOK_CONSULTATION#ko#bad_parameters");
+            return false;
+        }
+        int ID = atoi(idStr);
+        bool ok = CBP_Book_Consultation(cons_id, reason, ID);
+        snprintf(reponse, 200, "BOOK_CONSULTATION#%s", ok ? "ok" : "ko");
+        return false; // garder la connexion ouverte
+    }
 }
 
 int estPresent(int socket)
@@ -431,38 +436,38 @@ char* CBP_Search_Consultations(const char* specialties, char* doctorKey, char* d
 }
 
 
-void CBP_Book_Consultation(char* consultationId, char* reason, int id)
+bool CBP_Book_Consultation(char* consultationId, const char* reason, int id) 
 {
-	MYSQL * connection;
-	connection = mysql_init(NULL);
+    MYSQL* connection = mysql_init(NULL);
+    if (!connection) { fprintf(stderr, "mysql_init failed\n"); return false; }
 
-	if(!connection)
-	{
-		fprintf(stderr, "mysql_init failed\n");
-	}
+    if (!mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0)) {
+        fprintf(stderr, "connect : %s\n", mysql_error(connection));
+        mysql_close(connection);
+        return false;
+    }
 
-	else
-	{
-		if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
-		{
-			fprintf(stderr, "connect : %s\n", mysql_error(connection));
-		}
+    // Échapper reason
+    char reasonEsc[2*512+1]; // assez grand pour raison <=512
+    unsigned long len = mysql_real_escape_string(connection, reasonEsc, reason, strlen(reason));
+    reasonEsc[len] = '\0';
 
-		else
-		{
-			char sql_cmd[500];
+    int consID = atoi(consultationId);
+    char sql_cmd[1024];
+    // <-- virgule ajoutée entre patient_id et reason
+    sprintf(sql_cmd,
+            "UPDATE consultations "
+            "SET patient_id = %d, reason = '%s' "
+            "WHERE id = %d AND patient_id IS NULL;",
+            id, reasonEsc, consID);
 
-			int consID = atoi(consultationId);
+    if (mysql_query(connection, sql_cmd)) {
+        fprintf(stderr, "Query : %s\n", mysql_error(connection));
+        mysql_close(connection);
+        return false;
+    }
 
-			sprintf(sql_cmd, "update consultations set patient_id = %d reason = '%s' where id = %d and patient_id is NULL;", id, reason, consID);
-			if(mysql_query(connection, sql_cmd))
-			{
-				fprintf(stderr, "Query : %s\n", mysql_error(connection));
-				mysql_close(connection);
-			}
-
-			mysql_close(connection);
-
-		}
-	}
+    bool ok = (mysql_affected_rows(connection) == 1);
+    mysql_close(connection);
+    return ok;
 }

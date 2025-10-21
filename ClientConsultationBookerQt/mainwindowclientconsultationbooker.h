@@ -71,7 +71,9 @@ public:
     bool rechercherConsultations(const string& specialite, const string& docteur, 
                                 const string& dateDebut, const string& dateFin);
     
-    bool reserverConsultation(int consultationId, const string& raison);
+    bool reserverConsultation(int consultationId, const std::string& raison, int patientId);
+
+    int getSelectedConsultationId();
 
 
 private slots:

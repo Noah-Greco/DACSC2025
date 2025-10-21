@@ -19,7 +19,7 @@ void CBP_Logout(int socket);
 char * CBP_Get_Specialties();
 char * CBP_Get_Doctors();
 char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
-void CBP_Book_Consultation(char* consultationId, char* reason, int id);
+bool CBP_Book_Consultation(char* consultationId, const char* reason, int id);
 int estPresent(int socket);
 void ajoute(int socket);
 void retire(int socket);

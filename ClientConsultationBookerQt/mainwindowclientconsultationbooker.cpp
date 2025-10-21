@@ -519,24 +519,20 @@ bool MainWindowClientConsultationBooker::rechercherConsultations(const std::stri
 
 
 
-bool MainWindowClientConsultationBooker::reserverConsultation(int consultationId, const string& raison)
-{
-    string requete = string(BOOK_CONSULTATION) + diez + to_string(consultationId) + diez + raison;
-    string reponse;
-    
-    if (!envoyerRequete(requete, reponse))
-        return false;
-    
-    if (reponse.find(string(BOOK_CONSULTATION) + diez + string(OK)) == 0)
-    {
-        cout << "Consultation réservée avec succès" << endl;
-        return true;
-    }
-    else
-    {
-        cout << "Erreur réservation: " << reponse << endl;
-        return false;
-    }
+bool MainWindowClientConsultationBooker::reserverConsultation(int consultationId, const std::string& raison, int patientId) {
+    std::string requete = std::string(BOOK_CONSULTATION) + diez
+                        + std::to_string(consultationId) + diez
+                        + raison + diez
+                        + std::to_string(patientId);
+
+    std::string reponse;
+    if (!envoyerRequete(requete, reponse)) return false;
+
+    const std::string okPrefix = std::string(BOOK_CONSULTATION) + "#" + std::string(OK);
+    if (reponse.rfind(okPrefix, 0) == 0) return true;
+
+    std::cout << "Erreur réservation: " << reponse << std::endl;
+    return false;
 }
 
 void MainWindowClientConsultationBooker::on_pushButtonLogin_clicked()
@@ -633,7 +629,8 @@ void MainWindowClientConsultationBooker::on_pushButtonReserver_clicked()
 
     int consultationId = ui->tableWidgetConsultations->item(selectedRow, 0)->text().toInt();
 
-    if (reserverConsultation(consultationId, raison))
+    int patientId = this->getPatientId();
+    if (reserverConsultation(consultationId, raison, patientId))
     {
         dialogMessage("Réservation", "Consultation réservée avec succès");
         on_pushButtonRechercher_clicked();
