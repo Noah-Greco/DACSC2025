@@ -353,7 +353,7 @@ bool MainWindowClientConsultationBooker::estConnecte() const
 
 bool MainWindowClientConsultationBooker::loginPatient(const string& nom, const string& prenom, int patientId, bool nouveauPatient)
 {
-    string requete = string(LOGIN) + diez + nom + diez + prenom + diez + to_string(patientId) + diez + (nouveauPatient ? "1" : "0");
+    string requete = string(LOGIN) + diez + prenom + diez + nom + diez + to_string(patientId) + diez + (nouveauPatient ? "OUI" : "NON");
     string reponse;
     
     if (!envoyerRequete(requete, reponse))

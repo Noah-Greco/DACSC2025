@@ -7,7 +7,7 @@
 #include <mysql/mysql.h>
 
 bool CBP(char* requete, char* reponse,int socket);
-const char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
+char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
 void CBP_Logout(int socket);
 const char * CBP_Get_Specialties();
 const char * CBP_Get_Doctors();
@@ -46,7 +46,12 @@ bool CBP(char* requete, char* reponse,int socket)
 
 		else
 		{
-			CBP_Login(firstName, lastName, NoPatient, NvPatient, socket);
+			char* res = CBP_Login(firstName, lastName, NoPatient, NvPatient, socket);
+
+			snprintf(reponse, 200, "%s", res ? res : "NON");
+
+			if (res && strcmp(res, "NON") != 0) free(res);  // si CBP_Login a alloué
+
 		}
 	}
 
@@ -129,17 +134,28 @@ void retire(int socket)
 	pthread_mutex_unlock(&mutexClients);
 }
 
-const char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket)
+char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket)
 {
 	MYSQL * connection;
 	connection = mysql_init(NULL);
 
-	if(strcmp(NvPatient, "OUI") == 0) 
+	bool NewPatient;
+
+	if(strcmp(NvPatient, "OUI") == 0)
+	{
+		NewPatient = true;
+	}
+	else
+	{
+		NewPatient = false;
+	}
+
+	if(NewPatient) 
 	{
 		if(!connection)
 		{
 			fprintf(stderr, "mysql_init failed\n");
-			return "NON";
+			return strdup("LOGIN#ko");
 		}
 
 		else
@@ -147,62 +163,45 @@ const char * CBP_Login(const char* firstName,const char* lastName, const char * 
 			if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
 			{
 				fprintf(stderr, "connect : %s\n", mysql_error(connection));
-				return "NON";
+				return strdup("LOGIN#ko");
 			}
 
 			else
 			{
 				char sql_cmd[500];
-				sprintf(sql_cmd, "insert into patients (last_name, first_name) values (%s, %s);", lastName, firstName);
+				sprintf(sql_cmd, "insert into patients (id, last_name, first_name) values (%s, '%s', '%s');", NoPatient, lastName, firstName);
 				if(mysql_query(connection, sql_cmd))
 				{
-					fprintf(stderr, "Query : %s\n", mysql_error(connection));
+					fprintf(stderr, "Query 1 : %s\n", mysql_error(connection));
 					mysql_close(connection);
-					return "NON";
+					return strdup("LOGIN#ko");
 				}
 
-				else
-				{
-					unsigned long long id = mysql_insert_id(connection);
+				unsigned long long id = mysql_insert_id(connection);   
 
-					MYSQL_RES * res = mysql_store_result(connection);
+				printf("Création du patient avec l'id %llu. Connection OK", id);
+				ajoute(socket, id);
 
-					if(!res)
-					{
-						fprintf(stderr, "store_result : %s\n", mysql_error(connection));
-						mysql_close(connection);
-						return "NON";
-					}
+				char* valRet = static_cast<char*>(std::malloc(32));
+				if (!valRet) { mysql_close(connection); return strdup("LOGIN#ko"); }
 
-					else
-					{
-						char valRet[20];
+				snprintf(valRet, 32, "LOGIN#ok#%llu", id);
 
-						MYSQL_ROW row;
+				mysql_query(connection, "commit;");
 
-						row = mysql_fetch_row(res);
+				mysql_close(connection);
+				return valRet;
 
-						printf("Création du patient avec l'id %llu. Connection OK", id);
-
-						ajoute(socket, id);
-						
-						mysql_free_result(res);
-						mysql_close(connection);
-						
-						sprintf(valRet, "OUI#%llu", id);
-						return valRet;
-					}
-				}
 
 			}
 		}
 	}
 	else
-	{
+	{	
 		if(!connection)
 		{
 			fprintf(stderr, "mysql_init failed\n");
-			return "NON";
+			return strdup("LOGIN#ko");
 		}
 
 		else
@@ -210,18 +209,17 @@ const char * CBP_Login(const char* firstName,const char* lastName, const char * 
 			if(mysql_real_connect(connection, "localhost","Student","PassStudent1_","PourStudent",0,NULL,0) == NULL)
 			{
 				fprintf(stderr, "connect : %s\n", mysql_error(connection));
-				return "NON";
+				return "LOGIN#ko";
 			}
-
 			else
 			{
 				char sql_cmd[500];
-				sprintf(sql_cmd, "select * from patients where last_name like %s and first_name like %s;", lastName, firstName);
+				sprintf(sql_cmd, "select * from patients where last_name like '%s' and first_name like '%s';", lastName, firstName);
 				if(mysql_query(connection, sql_cmd))
 				{
 					fprintf(stderr, "Query : %s\n", mysql_error(connection));
 					mysql_close(connection);
-					return "NON";
+					return strdup("LOGIN#ko");
 				}
 
 				else
@@ -232,7 +230,7 @@ const char * CBP_Login(const char* firstName,const char* lastName, const char * 
 					{
 						fprintf(stderr, "store_result : %s\n", mysql_error(connection));
 						mysql_close(connection);
-						return "NON";
+						return strdup("LOGIN#ko");
 					}
 
 					else
@@ -248,23 +246,30 @@ const char * CBP_Login(const char* firstName,const char* lastName, const char * 
 
 						sprintf(id, "%d", NumPatient);
 
-						mysql_free_result(res);
-						mysql_close(connection);
-
 						if(strcmp(id, row[0]) == 0)
 						{
 							printf("Le NoPatient est bon. Connection OK");
-							return "OUI";
+							mysql_free_result(res);
+							mysql_close(connection);
+							return strdup("LOGIN#ok");
+						}
+						else
+						{
+							mysql_free_result(res);
+							mysql_close(connection);
+							return strdup("LOGIN#ko");
 						}
 
-						
+							
 					}
 				}
 
 			}
 		}
 	}
+		
 }
+
 
 void CBP_Logout(int socket)
 {

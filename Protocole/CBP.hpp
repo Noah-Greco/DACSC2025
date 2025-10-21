@@ -14,7 +14,7 @@
 #define NB_MAX_CLIENTS 100
 
 bool CBP(char* requete, char* reponse,int socket);
-const char * CBP_Login(const char* user,const char* password);
+char * CBP_Login(const char* user,const char* password);
 void CBP_Logout(int socket);
 const char * CBP_Get_Specialties();
 const char * CBP_Get_Doctors();
