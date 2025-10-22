@@ -240,50 +240,6 @@ int MainWindowClientConsultationBooker::dialogInputInt(const string& title,const
     return QInputDialog::getInt(this,QString::fromStdString(title),QString::fromStdString(question));
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///// Fonctions gestion des boutons (TO DO) //////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*void MainWindowClientConsultationBooker::on_pushButtonLogin_clicked()
-{
-    string lastName = this->getLastName();
-    string firstName = this->getFirstName();
-    int patientId = this->getPatientId();
-    bool newPatient = this->isNewPatientSelected();
-
-    cout << "lastName = " << lastName << endl;
-    cout << "FirstName = " << firstName << endl;
-    cout << "patientId = " << patientId << endl;
-    cout << "newPatient = " << newPatient << endl;
-
-    loginOk();
-}
-
-void MainWindowClientConsultationBooker::on_pushButtonLogout_clicked()
-{
-    logoutOk();
-}
-
-void MainWindowClientConsultationBooker::on_pushButtonRechercher_clicked()
-{
-    string specialty = this->getSelectionSpecialty();
-    string doctor = this->getSelectionDoctor();
-    string startDate = this->getStartDate();
-    string endDate = this->getEndDate();
-
-    cout << "specialty = " << specialty << endl;
-    cout << "doctor = " << doctor << endl;
-    cout << "startDate = " << startDate << endl;
-    cout << "endDate = " << endDate << endl;
-}
-
-void MainWindowClientConsultationBooker::on_pushButtonReserver_clicked()
-{
-    int selectedTow = this->getSelectionIndexTableConsultations();
-
-    cout << "selectedRow = " << selectedTow << endl;
-}
-*/
-
 bool MainWindowClientConsultationBooker::connecterServeur(const string& ipServeur, int port)
 {
     this->ipServeur = ipServeur;

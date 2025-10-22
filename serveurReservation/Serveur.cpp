@@ -39,6 +39,7 @@ int main(int argc,char* argv[])
 		exit(1);
 	}
 
+	//Aloue la file qui stockera les socket en attente 
 	socketsAcceptees = (int*)malloc(TAILLE_FILE_ATTENTE * sizeof(int));
     if (socketsAcceptees == NULL)
     {
@@ -51,7 +52,7 @@ int main(int argc,char* argv[])
 	pthread_cond_init(&condSocketsAcceptees,NULL);
 
 	for (int i=0 ; i<TAILLE_FILE_ATTENTE ; i++)
-		socketsAcceptees[i] = -1;
+		socketsAcceptees[i] = -1; //vide
 
 	// Armement des signaux
 	struct sigaction A;
@@ -104,10 +105,10 @@ int main(int argc,char* argv[])
 
 		socketsAcceptees[indiceEcriture] = sService; 
 
-		indiceEcriture++;
+		indiceEcriture++; //avance dans tab
 
-		if (indiceEcriture == TAILLE_FILE_ATTENTE) 
-			indiceEcriture = 0;
+		if (indiceEcriture == TAILLE_FILE_ATTENTE) //si fin
+			indiceEcriture = 0; //revenir debut
 
 		pthread_mutex_unlock(&mutexSocketsAcceptees);
 
@@ -125,14 +126,14 @@ void* FctThreadClient(void* p)
 		// Attente d'une tâche
 		pthread_mutex_lock(&mutexSocketsAcceptees);
 
-		while (indiceEcriture == indiceLecture)
+		while (indiceEcriture == indiceLecture) //si file vide
 			pthread_cond_wait(&condSocketsAcceptees,&mutexSocketsAcceptees);
 
-		sService = socketsAcceptees[indiceLecture];
-		socketsAcceptees[indiceLecture] = -1;
-		indiceLecture++;
+		sService = socketsAcceptees[indiceLecture];//recup sckt a traiter
+		socketsAcceptees[indiceLecture] = -1; //libère case
+		indiceLecture++;//passe a suivante 
 
-		if (indiceLecture == TAILLE_FILE_ATTENTE) 
+		if (indiceLecture == TAILLE_FILE_ATTENTE) //debut si vide
 			indiceLecture = 0;
 		
 		pthread_mutex_unlock(&mutexSocketsAcceptees);
@@ -168,7 +169,7 @@ void TraitementConnexion(int sService)
 	{
 		printf("\t[THREAD %lu] Attente requete...\n",(unsigned long)pthread_self());
 
-		// ***** Reception Requete ******************
+		//Reception Requete
 		if ((nbLus = Receive(sService,requete)) < 0)
 		{
 			perror("Erreur de Receive");
@@ -177,7 +178,7 @@ void TraitementConnexion(int sService)
 			HandlerSIGINT(0);
 		}
 
-		// ***** Fin de connexion ? *****************
+		//Fin de connexion
 		if (nbLus == 0)
 		{
 			printf("\t[THREAD %lu] Fin de connexion du client.\n",(unsigned long)pthread_self());
@@ -185,14 +186,14 @@ void TraitementConnexion(int sService)
 			return;
 		}
 
-		requete[nbLus] = 0;
+		requete[nbLus] = 0; // \O
 
 		printf("\t[THREAD %lu] Requete recue = %s\n",(unsigned long)pthread_self(),requete);
 
-		// ***** Traitement de la requete ***********
+		//Traitement de la requete
 		status = CBP(requete,reponse,sService);
 
-		// ***** Envoi de la reponse ****************
+		//Envoi de la reponse
 		if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)
 		{
 			perror("Erreur de Send");
@@ -210,7 +211,7 @@ void TraitementConnexion(int sService)
         }
 	}
 }
-
+//Charge serv.conf
 int LoadConf(const char* nomFichier)
 {
     FILE* fichier = fopen(nomFichier, "r");
@@ -226,10 +227,12 @@ int LoadConf(const char* nomFichier)
     while (fgets(ligne, sizeof(ligne), fichier) != NULL)
     {
         if (ligne[0] == '#' || ligne[0] == '\n' || ligne[0] == '\r')
-            continue;
-            
-        if (sscanf(ligne, "%63[^=]=%63s", cle, valeur) == 2)
+            continue;//passer tour de boucle suivant
+         
+      //lis 63 caractere max jusqua trouver = , tt avant il met dans clé et apres dans valeur    
+        if (sscanf(ligne, "%63[^=]=%63s", cle, valeur) == 2) //
         {
+        	//compare ce qu'on a avec ce qu'on attends
             if (strcmp(cle, "PORT_RESERVATION") == 0)
             {
                 PORT_RESERVATION = atoi(valeur);
