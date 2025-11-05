@@ -34,6 +34,7 @@
 #define PATIENT_NON_TROUVE 2
 #define ERREUR_BD 3
 #define ERREUR_INCONNUE 4
+#define BAD_REQUEST 5
 #define FERMER_CONNEXION 99
 
 #define MAX_NAME_LEN 50

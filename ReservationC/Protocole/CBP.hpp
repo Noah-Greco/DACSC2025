@@ -21,7 +21,7 @@ char * CBP_Get_Doctors();
 char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
 bool CBP_Book_Consultation(char* consultationId, const char* reason, int id);
 int estPresent(int socket);
-void ajoute(int socket);
+void ajoute(int socket, unsigned long long id, char prenom, char nom, char ip);
 void retire(int socket);
 
 #endif

@@ -69,12 +69,12 @@ int ClientSocket(const char* ipServeur, int portServeur) {
     if (s < 0) {
         return -1;
     }
-//Prepare l'adresse réseau
+    //Prepare l'adresse réseau
     struct sockaddr_in srv;
     memset(&srv, 0, sizeof(srv));
     srv.sin_family = AF_INET;
     srv.sin_port   = htons((uint16_t)portServeur);
-//lis l'ip et remplie ipServeur
+    //lis l'ip et remplie ipServeur
     if (inet_pton(AF_INET, ipServeur, &srv.sin_addr) != 1) {
         close(s);
         errno = EINVAL;
@@ -108,7 +108,6 @@ int Send(int sSocket, const char* data, int taille) {
     }
     return total;
 }
-
 
 int Receive(int sSocket, char* data) {
     if (data == NULL) {
