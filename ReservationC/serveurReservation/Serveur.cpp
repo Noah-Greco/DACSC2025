@@ -20,13 +20,7 @@ int PORT_RESERVATION;
 int NB_THREADS_POOL;
 int TAILLE_FILE_ATTENTE;
 
-typedef struct
-{
-	int socket;
-	char ip[IP_STR_LEN];
-}connectionClient;
-
-connectionClient* socketsAcceptees = NULL;
+int* socketsAcceptees;
 int indiceEcriture=0, indiceLecture=0;
 
 pthread_mutex_t mutexSocketsAcceptees;
@@ -45,25 +39,20 @@ int main(int argc,char* argv[])
 		exit(1);
 	}
 
-	socketsAcceptees = (connectionClient*)malloc(
-    	TAILLE_FILE_ATTENTE * sizeof(connectionClient)
-	);
-
-	if (socketsAcceptees == NULL) {
-	    fprintf(stderr, "Erreur d'allocation memoire\n");
-	    exit(1);
-	}
-	for (int i = 0; i < TAILLE_FILE_ATTENTE; ++i) {
-	    socketsAcceptees[i].socket = -1;
-	    socketsAcceptees[i].ip[0] = '\0';
-	}
+	//Aloue la file qui stockera les socket en attente 
+	socketsAcceptees = (int*)malloc(TAILLE_FILE_ATTENTE * sizeof(int));
+    if (socketsAcceptees == NULL)
+    {
+        printf("Erreur d'allocation mémoire\n");
+        exit(1);
+    }
 
 	// Initialisation socketsAcceptees
 	pthread_mutex_init(&mutexSocketsAcceptees,NULL);
 	pthread_cond_init(&condSocketsAcceptees,NULL);
 
 	for (int i=0 ; i<TAILLE_FILE_ATTENTE ; i++)
-		socketsAcceptees[i].socket = -1; //vide
+		socketsAcceptees[i] = -1; //vide
 
 	// Armement des signaux
 	struct sigaction A;
@@ -93,7 +82,7 @@ int main(int argc,char* argv[])
 
 	// Mise en boucle du serveur
 	int sService;
-	char ipClient[IP_STR_LEN];
+	char ipClient[IP_STR_LEN] = DEFAULT_SERVER_IP;
 
 	printf("Demarrage du serveur.\n");
 
@@ -108,19 +97,22 @@ int main(int argc,char* argv[])
 			exit(1);
 		}
 
+		printf("Connexion acceptée : IP=%s socket=%d\n",ipClient,sService);
+
 		// Insertion en liste d'attente et réveil d'un thread du pool
 		// (Production d'une tâche)
 		pthread_mutex_lock(&mutexSocketsAcceptees);
 
-		socketsAcceptees[indiceEcriture].socket = sService;
-		strncpy(socketsAcceptees[indiceEcriture].ip, ipClient, IP_STR_LEN - 1);
-		socketsAcceptees[indiceEcriture].ip[IP_STR_LEN - 1] = '\0';
+		socketsAcceptees[indiceEcriture] = sService; 
 
-		indiceEcriture = (indiceEcriture + 1) % TAILLE_FILE_ATTENTE;
+		indiceEcriture++; //avance dans tab
+
+		if (indiceEcriture == TAILLE_FILE_ATTENTE) //si fin
+			indiceEcriture = 0; //revenir debut
 
 		pthread_mutex_unlock(&mutexSocketsAcceptees);
-		pthread_cond_signal(&condSocketsAcceptees);
 
+		pthread_cond_signal(&condSocketsAcceptees);
 	}
 }
 void* FctThreadClient(void* p)
@@ -198,28 +190,9 @@ void TraitementConnexion(int sService)
 
 		printf("\t[THREAD %lu] Requete recue = %s\n",(unsigned long)pthread_self(),requete);
 
-		char * ptr = strtok(requete, "#");
+		//Traitement de la requete
+		status = CBP(requete,reponse,sService);
 
-		if(strcmp(requete, "ACBP") == 0)
-		{
-			status = ACBP(requete, reponse, sService);
-		}
-
-		else 
-		{
-			if(strcmp(requete, "CBP") == 0)
-			{
-				//Traitement de la requete
-				status = CBP(requete,reponse,sService);
-			}
-
-			else
-			{
-				status = BAD_REQUEST;
-			}
-		}
-
-		
 		//Envoi de la reponse
 		if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)
 		{

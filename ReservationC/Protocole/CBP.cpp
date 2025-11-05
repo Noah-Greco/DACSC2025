@@ -16,19 +16,11 @@ char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb
 bool CBP_Book_Consultation(char* consultationId, const char* reason, int id);
 
 int estPresent(int socket);
-void ajoute(int socket, unsigned long long id, char prenom, char nom, char ip);
+void ajoute(int socket);
 void retire(int socket, unsigned long long id);
 
 int clients[NB_MAX_CLIENTS];
 int nbClients = 0;
-
-typedef struct
-{
-	char[30] ip;
-	char[30] nom;
-	char[30] prenom;
-	char[10] noPatient;
-}CLientLog;
 
 pthread_mutex_t mutexClients = PTHREAD_MUTEX_INITIALIZER;
 
@@ -155,19 +147,11 @@ int estPresent(int socket)
 	return indice;
 }
 
-void ajoute(int socket, unsigned long long id, char prenom, char nom, char ip)
+void ajoute(int socket, unsigned long long id)
 {
 	pthread_mutex_lock(&mutexClients);
 	clients[nbClients] = socket;
 	nbClients++;
-
-	char charId[10];
-	sprintf(charId, "%d", id);
-
-	ClientLog.ip = ;
-	ClientLog.nom = ;
-	ClientLog.prenom = ;
-	ClientLog.noPatient = charId;
 	pthread_mutex_unlock(&mutexClients);
 }
 
@@ -234,8 +218,7 @@ char * CBP_Login(const char* firstName,const char* lastName, const char * NoPati
 				unsigned long long id = mysql_insert_id(connection);   
 
 				printf("Création du patient avec l'id %llu. Connection OK", id);
-
-				ajoute(socket, id, firstName, lastName);
+				ajoute(socket, id);
 
 				char* valRet = static_cast<char*>(std::malloc(32));
 				if (!valRet) { mysql_close(connection); return strdup("LOGIN#ko"); }
@@ -323,6 +306,7 @@ char * CBP_Login(const char* firstName,const char* lastName, const char * NoPati
 		}
 	}	
 }
+
 
 void CBP_Logout(int socket)
 {
@@ -450,6 +434,7 @@ char* CBP_Search_Consultations(const char* specialties, char* doctorKey, char* d
     if (out.empty()) return strdup("");   // pas d’erreur, juste vide
     return strdup(out.c_str());           // free() côté appelant
 }
+
 
 bool CBP_Book_Consultation(char* consultationId, const char* reason, int id) 
 {
