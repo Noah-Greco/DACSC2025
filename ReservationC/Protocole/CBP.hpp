@@ -13,7 +13,7 @@
 
 #define NB_MAX_CLIENTS 100
 
-bool CBP(char* requete, char* reponse,int socket);
+bool CBP(char* requete, char* reponse,int socket, const char* ip);
 char * CBP_Login(const char* user,const char* password);
 void CBP_Logout(int socket);
 char * CBP_Get_Specialties();
