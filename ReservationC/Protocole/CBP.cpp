@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <mysql/mysql.h>
 
-bool CBP(char* requete, char* reponse,int socket, const char* ip);
+bool CBP(char* requete, char* reponse,int socket);
 char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
 void CBP_Logout(int socket);
 char * CBP_Get_Specialties();
@@ -32,7 +32,7 @@ typedef struct
 
 pthread_mutex_t mutexClients = PTHREAD_MUTEX_INITIALIZER;
 
-bool CBP(char* requete, char* reponse,int socket, const char* ip)
+bool CBP(char* requete, char* reponse,int socket)
 {
 	char *ptr = strtok(requete,"#");
 

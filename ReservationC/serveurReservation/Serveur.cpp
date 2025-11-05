@@ -10,7 +10,7 @@
 #include "../param/param.h"
 
 void HandlerSIGINT(int s);
-void TraitementConnexion(int sService, const char* ip);
+void TraitementConnexion(int sService);
 void* FctThreadClient(void* p);
 int LoadConf(const char* nomFichier);
 
@@ -113,7 +113,7 @@ int main(int argc,char* argv[])
 		pthread_mutex_lock(&mutexSocketsAcceptees);
 
 		socketsAcceptees[indiceEcriture].socket = sService;
-		strncpy(ipClient, socketsAcceptees[indiceEcriture].ip, IP_STR_LEN - 1);
+		strncpy(socketsAcceptees[indiceEcriture].ip, ipClient, IP_STR_LEN - 1);
 		socketsAcceptees[indiceEcriture].ip[IP_STR_LEN - 1] = '\0';
 
 		indiceEcriture = (indiceEcriture + 1) % TAILLE_FILE_ATTENTE;
@@ -138,7 +138,7 @@ void* FctThreadClient(void* p)
 			pthread_cond_wait(&condSocketsAcceptees,&mutexSocketsAcceptees);
 
 		sService = socketsAcceptees[indiceLecture];//recup sckt a traiter
-		socketsAcceptees[indiceLecture].socket = -1; //libère case
+		socketsAcceptees[indiceLecture] = -1; //libère case
 		indiceLecture++;//passe a suivante 
 
 		if (indiceLecture == TAILLE_FILE_ATTENTE) //debut si vide
@@ -167,7 +167,7 @@ void HandlerSIGINT(int s)
 
 	exit(0);
 }
-void TraitementConnexion(int sService, const char* ip)
+void TraitementConnexion(int sService)
 {
 	char requete[200], reponse[200];
 	int nbLus, nbEcrits;
@@ -209,9 +209,8 @@ void TraitementConnexion(int sService, const char* ip)
 		{
 			if(strcmp(requete, "CBP") == 0)
 			{
-
 				//Traitement de la requete
-				status = CBP(requete,reponse,sService, ip);
+				status = CBP(requete,reponse,sService);
 			}
 
 			else
