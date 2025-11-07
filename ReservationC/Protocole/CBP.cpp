@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <mysql/mysql.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
 
 bool CBP(char* requete, char* reponse,int socket);
 char * CBP_Login(const char* firstName,const char* lastName, const char * NoPatient, const char * NvPatient, int socket);
@@ -14,12 +18,22 @@ char * CBP_Get_Specialties();
 char * CBP_Get_Doctors();
 char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
 bool CBP_Book_Consultation(char* consultationId, const char* reason, int id);
+char * CBP_All_Client();
 
 int estPresent(int socket);
-void ajoute(int socket);
+void ajoute(int socket, unsigned long long id, const char* firstName,const char* lastName, const char * NoPatient);
 void retire(int socket, unsigned long long id);
 
-int clients[NB_MAX_CLIENTS];
+typedef struct
+{
+	char ipClient[30];
+	char nomClient[30];
+	char prenomClient[30];
+	char noClient[30];
+}structClient;
+
+structClient clients[NB_MAX_CLIENTS];
+int clientSocket[NB_MAX_CLIENTS];
 int nbClients = 0;
 
 pthread_mutex_t mutexClients = PTHREAD_MUTEX_INITIALIZER;
@@ -137,7 +151,7 @@ int estPresent(int socket)
 	pthread_mutex_lock(&mutexClients);
 	for(int i=0 ; i<nbClients ; i++)
 	{
-		if (clients[i] == socket) 
+		if (clientSocket[i] == socket) 
 		{ 
 			indice = i; break; 
 		}
@@ -147,10 +161,38 @@ int estPresent(int socket)
 	return indice;
 }
 
-void ajoute(int socket, unsigned long long id)
+void ajoute(int socket, unsigned long long id, const char* firstName,const char* lastName, const char * NoPatient)
 {
+	char host[NI_MAXHOST] = {0};
+    char serv[NI_MAXSERV] = {0};
+
+    struct sockaddr_storage sa;
+    socklen_t len = sizeof(sa);
+
+    if (getpeername(socket, (struct sockaddr*)&sa, &len) == 0)
+    {
+        if (getnameinfo((struct sockaddr*)&sa, len,
+                        host, sizeof(host),
+                        serv, sizeof(serv),
+                        NI_NUMERICHOST | NI_NUMERICSERV) != 0)
+        {
+	        printf("Erreur d'ajout le client n'a pas pu être connecté");
+        }
+    }
+    else
+    {
+        printf("Erreur d'ajout le client n'a pas pu être connecté");
+    }
+
+
 	pthread_mutex_lock(&mutexClients);
-	clients[nbClients] = socket;
+	clientSocket[nbClients] = socket;
+
+	strncpy(clients[nbClients].ipClient, );
+	strncpy(clients[nbClients].nomClient, lastName);
+	strncpy(clients[nbClients].prenomClient, firstName);
+	strncpy(clients[nbClients].noClient, NoPatient);
+
 	nbClients++;
 	pthread_mutex_unlock(&mutexClients);
 }
@@ -165,7 +207,10 @@ void retire(int socket)
 	pthread_mutex_lock(&mutexClients);
 
 	for (int i=pos ; i<=nbClients-2 ; i++)
+	{
 		clients[i] = clients[i+1];
+		clientSocket[i] = clientSocket[i+1]
+	}
 
 	nbClients--;
 
@@ -218,7 +263,7 @@ char * CBP_Login(const char* firstName,const char* lastName, const char * NoPati
 				unsigned long long id = mysql_insert_id(connection);   
 
 				printf("Création du patient avec l'id %llu. Connection OK", id);
-				ajoute(socket, id);
+				ajoute(socket, id, firstName, lastName, NoPatient);
 
 				char* valRet = static_cast<char*>(std::malloc(32));
 				if (!valRet) { mysql_close(connection); return strdup("LOGIN#ko"); }
@@ -470,4 +515,21 @@ bool CBP_Book_Consultation(char* consultationId, const char* reason, int id)
     bool ok = (mysql_affected_rows(connection) == 1);
     mysql_close(connection);
     return ok;
+}
+
+char * CBP_All_Client()
+{
+	char rep[100];
+	strcpy(rep, "LIST_CLIENTS#");
+	for(i = 0; i < NB_MAX_CLIENTS; i++)
+	{
+		strcpy(rep, clients[i].ipClient);
+		strcpy(rep, ";");
+		strcpy(rep, clients[i].nomClient);
+		strcpy(rep, ";");
+		strcpy(rep, clients[i].prenomClient);
+		strcpy(rep, ";");
+		strcpy(rep, clients[i].noClient);
+		strcpy(rep, "#");
+	}
 }

@@ -20,8 +20,10 @@ char * CBP_Get_Specialties();
 char * CBP_Get_Doctors();
 char * CBP_Search_Consultations(const char* specialties, char* id, char* dateDeb, char* dateFin);
 bool CBP_Book_Consultation(char* consultationId, const char* reason, int id);
+char * CBP_All_Client();
+
 int estPresent(int socket);
-void ajoute(int socket);
+void ajoute(int socket, unsigned long long id, const char* firstName,const char* lastName, const char * NoPatient)
 void retire(int socket);
 
 #endif
