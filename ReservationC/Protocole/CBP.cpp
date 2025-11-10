@@ -189,10 +189,17 @@ void ajoute(int socket, unsigned long long id, const char* firstName,const char*
 	pthread_mutex_lock(&mutexClients);
 	clientSocket[nbClients] = socket;
 
-	strncpy(clients[nbClients].ipClient, );
-	strncpy(clients[nbClients].nomClient, lastName);
-	strncpy(clients[nbClients].prenomClient, firstName);
-	strncpy(clients[nbClients].noClient, NoPatient);
+	strncpy(clients[nbClients].ipClient, host, sizeof(clients[nbClients].ipClient) - 1);
+	clients[nbClients].ipClient[sizeof(clients[nbClients].ipClient) - 1] = '\0';
+
+	strncpy(clients[nbClients].nomClient,     lastName,  sizeof(clients[nbClients].nomClient) - 1);
+	clients[nbClients].nomClient[sizeof(clients[nbClients].nomClient) - 1] = '\0';
+
+	strncpy(clients[nbClients].prenomClient,  firstName, sizeof(clients[nbClients].prenomClient) - 1);
+	clients[nbClients].prenomClient[sizeof(clients[nbClients].prenomClient) - 1] = '\0';
+
+	strncpy(clients[nbClients].noClient,      NoPatient, sizeof(clients[nbClients].noClient) - 1);
+	clients[nbClients].noClient[sizeof(clients[nbClients].noClient) - 1] = '\0';
 
 	nbClients++;
 	pthread_mutex_unlock(&mutexClients);
@@ -210,7 +217,7 @@ void retire(int socket)
 	for (int i=pos ; i<=nbClients-2 ; i++)
 	{
 		clients[i] = clients[i+1];
-		clientSocket[i] = clientSocket[i+1]
+		clientSocket[i] = clientSocket[i+1];
 	}
 
 	nbClients--;
@@ -520,8 +527,11 @@ bool CBP_Book_Consultation(char* consultationId, const char* reason, int id)
 
 char * CBP_All_Client()
 {
+	int i;
 	char rep[100];
 	strcpy(rep, "LIST_CLIENTS#");
+
+	pthread_mutex_lock(&mutexClients);
 	for(i = 0; i < NB_MAX_CLIENTS; i++)
 	{
 		strcpy(rep, clients[i].ipClient);
@@ -533,4 +543,5 @@ char * CBP_All_Client()
 		strcpy(rep, clients[i].noClient);
 		strcpy(rep, "#");
 	}
+	pthread_mutex_unlock(&mutexClients);
 }

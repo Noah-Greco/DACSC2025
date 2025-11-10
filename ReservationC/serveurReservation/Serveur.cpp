@@ -7,6 +7,7 @@
 
 #include "../Librairie/Librairie.hpp"
 #include "../Protocole/CBP.hpp"
+#include "../Protocole/ACBP.hpp"
 #include "../param/param.h"
 
 void HandlerSIGINT(int s);
@@ -14,9 +15,15 @@ void TraitementConnexion(int sService);
 void* FctThreadClient(void* p);
 int LoadConf(const char* nomFichier);
 
+void* ThreadAdminAcceptor(void*); 
+void* ThreadAdminService(void* p);
+bool Dispatch(char* requete, char* reponse, int sService); 
+
 int sEcoute;
+int sEcouteAdmin;
 
 int PORT_RESERVATION;
+int PORT_ADMIN;
 int NB_THREADS_POOL;
 int TAILLE_FILE_ATTENTE;
 
@@ -66,19 +73,31 @@ int main(int argc,char* argv[])
 		exit(1);
 	}
 
-	// Creation de la socket d'écoute
+	// Creation de la socket d'écoute client
 	if ((sEcoute = ServerSocket(PORT_RESERVATION)) == -1)
 	{
 		perror("Erreur de ServeurSocket");
 		exit(1);
 	}
 
+	//Admin
+	if ((sEcouteAdmin = ServerSocket(PORT_ADMIN)) == -1)
+	{
+		perror("Erreur de ServeurSocket Admin");
+		exit(1);
+	}
+
+
 	// Creation du pool de threads
 	printf("Création du pool de threads.\n");
-	pthread_t th;
 
+	pthread_t th;
 	for (int i=0 ; i<NB_THREADS_POOL ; i++)
 		pthread_create(&th,NULL,FctThreadClient,NULL);
+
+	pthread_t thAdmin;
+	pthread_create(&thAdmin, NULL, ThreadAdminAcceptor, NULL);
+	pthread_detach(thAdmin);
 
 	// Mise en boucle du serveur
 	int sService;
@@ -103,12 +122,12 @@ int main(int argc,char* argv[])
 		// (Production d'une tâche)
 		pthread_mutex_lock(&mutexSocketsAcceptees);
 
+		while (socketsAcceptees[indiceEcriture] != -1)
+    		pthread_cond_wait(&condSocketsAcceptees, &mutexSocketsAcceptees);
+
 		socketsAcceptees[indiceEcriture] = sService; 
 
-		indiceEcriture++; //avance dans tab
-
-		if (indiceEcriture == TAILLE_FILE_ATTENTE) //si fin
-			indiceEcriture = 0; //revenir debut
+		indiceEcriture = (indiceEcriture + 1) % TAILLE_FILE_ATTENTE;
 
 		pthread_mutex_unlock(&mutexSocketsAcceptees);
 
@@ -131,12 +150,11 @@ void* FctThreadClient(void* p)
 
 		sService = socketsAcceptees[indiceLecture];//recup sckt a traiter
 		socketsAcceptees[indiceLecture] = -1; //libère case
-		indiceLecture++;//passe a suivante 
-
-		if (indiceLecture == TAILLE_FILE_ATTENTE) //debut si vide
-			indiceLecture = 0;
+		indiceLecture = (indiceLecture + 1) % TAILLE_FILE_ATTENTE;
 		
 		pthread_mutex_unlock(&mutexSocketsAcceptees);
+
+		pthread_cond_signal(&condSocketsAcceptees); // réveille un producteur éventuel
 
 		// Traitement de la connexion (consommation de la tâche)
 		printf("\t[THREAD %p] Je m'occupe de la socket %d\n", pthread_self(),sService);
@@ -144,10 +162,55 @@ void* FctThreadClient(void* p)
 		TraitementConnexion(sService);
 	}
 }
+void* ThreadAdminAcceptor(void*)
+{
+    char ip[IP_STR_LEN] = DEFAULT_SERVER_IP;
+    while (1)
+    {
+        int sAdmin = Accept(sEcouteAdmin, ip);
+        if (sAdmin == -1) { perror("Accept admin"); continue; }
+        pthread_t th;
+
+        // un thread par connexion admin = “à la demande”
+        int* arg = (int*)malloc(sizeof(int));
+        *arg = sAdmin;
+        pthread_create(&th, NULL, ThreadAdminService, arg);
+        pthread_detach(th);
+    }
+    return NULL;
+}
+
+void* ThreadAdminService(void* p)
+{
+    int sService = *(int*)p; free(p);
+    char req[200], rep[200];
+    while (1)
+    {
+        int n = Receive(sService, req);
+        if (n <= 0) { close(sService); return NULL; }
+        req[n] = 0;
+
+        char tmp[200]; strncpy(tmp, req, sizeof(tmp)-1); tmp[sizeof(tmp)-1]=0;
+        char* tag = strtok(tmp, "#");
+        if (!tag || strcmp(tag, "ACBP") != 0) {
+            snprintf(rep, sizeof(rep), "#ko#admin_only_acbp");
+            Send(sService, rep, strlen(rep));
+            close(sService);
+            return NULL;
+        }
+
+        bool fermer = ACBP(req, rep);
+        if (Send(sService, rep, strlen(rep)) < 0) { close(sService); return NULL; }
+        if (fermer) { close(sService); return NULL; }
+    }
+}
+
 void HandlerSIGINT(int s)
 {
 	printf("\nArret du serveur.\n");
 	close(sEcoute);
+	close(sEcouteAdmin);
+
 	pthread_mutex_lock(&mutexSocketsAcceptees);
 
 	for (int i=0 ; i<TAILLE_FILE_ATTENTE ; i++)
@@ -155,7 +218,7 @@ void HandlerSIGINT(int s)
 	
 	pthread_mutex_unlock(&mutexSocketsAcceptees);
 
-	CBP_Logout(sEcoute); 
+	CBP_Logout(sEcoute); //a modif car fonctionne pas pour ACBP
 
 	exit(0);
 }
@@ -175,7 +238,7 @@ void TraitementConnexion(int sService)
 			perror("Erreur de Receive");
 			close(sService);
 
-			HandlerSIGINT(0);
+			return;
 		}
 
 		//Fin de connexion
@@ -189,34 +252,20 @@ void TraitementConnexion(int sService)
 		requete[nbLus] = 0; // \O
 
 		printf("\t[THREAD %lu] Requete recue = %s\n",(unsigned long)pthread_self(),requete);
-
-		char *ptr = strtok(requete,"#");
-
-		if(strcmp(ptr, "CBP"))
-		{
-			//Traitement de la requete
-			status = CBP(requete,reponse,sService);
-		}
-		else
-		{
-			if (strcmp(ptr, "ACBP"))
-			{
-				status = ACBP(requete, reponse);
-			}
-		}
 		
+		bool fermer = Dispatch(requete, reponse, sService);
 
 		//Envoi de la reponse
 		if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)
 		{
 			perror("Erreur de Send");
 			close(sService);
-			HandlerSIGINT(0);
+			return;
 		}
 
 		printf("\t[THREAD %p] Reponse envoyee = %s\n",pthread_self(),reponse);
 
-		if (status == FERMER_CONNEXION)
+		if (fermer)
         {
             printf("\t[THREAD %lu] Fin de connexion de la socket %d\n", (unsigned long)pthread_self(), sService);
             close(sService);
@@ -224,6 +273,25 @@ void TraitementConnexion(int sService)
         }
 	}
 }
+
+bool Dispatch(char* requete, char* reponse, int sService)
+{
+    // copie locale car strtok modifie la chaîne
+    char tmp[200]; strncpy(tmp, requete, sizeof(tmp)-1); tmp[sizeof(tmp)-1]=0;
+
+    char* tag = strtok(tmp, "#");     // "CBP" ou "ACBP"
+    if (!tag) { snprintf(reponse,200,"#ko#bad_request"); return false; }
+
+    if (strcmp(tag, "CBP") == 0)      // == 0 quand égal
+        return CBP(requete, reponse, sService);
+
+    if (strcmp(tag, "ACBP") == 0)
+        return ACBP(requete, reponse);
+
+    snprintf(reponse,200,"#ko#unknown_proto");
+    return false;
+}
+
 //Charge serv.conf
 int LoadConf(const char* nomFichier)
 {
@@ -258,6 +326,10 @@ int LoadConf(const char* nomFichier)
             {
                 TAILLE_FILE_ATTENTE = atoi(valeur);
             }
+			else if (strcmp(cle, "PORT_ADMIN") == 0) {
+				PORT_ADMIN = atoi(valeur);
+			}
+
         }
     }
     
