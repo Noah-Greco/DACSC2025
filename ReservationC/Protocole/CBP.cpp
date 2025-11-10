@@ -40,7 +40,7 @@ pthread_mutex_t mutexClients = PTHREAD_MUTEX_INITIALIZER;
 
 bool CBP(char* requete, char* reponse,int socket)
 {
-	char *ptr = strtok(requete,"#");
+	char *ptr = strtok(NULL,"#");
 
 	if(strcmp(ptr,"LOGIN") == 0)
 	{
@@ -68,7 +68,7 @@ bool CBP(char* requete, char* reponse,int socket)
 			if (res && strcmp(res, "NON") != 0) free(res);  // si CBP_Login a alloué
 
 		}
-		return false;
+		return true;
 	}
 
 	if (strcmp(ptr,"LOGOUT") == 0)
@@ -99,6 +99,7 @@ bool CBP(char* requete, char* reponse,int socket)
     	{
         	snprintf(reponse, 200, "GET_DOCTORS#ok#%s", res);
         	free(res);
+        	return true;
     	} 
 	    else 
 	    {

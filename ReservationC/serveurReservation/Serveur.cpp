@@ -190,8 +190,21 @@ void TraitementConnexion(int sService)
 
 		printf("\t[THREAD %lu] Requete recue = %s\n",(unsigned long)pthread_self(),requete);
 
-		//Traitement de la requete
-		status = CBP(requete,reponse,sService);
+		char *ptr = strtok(requete,"#");
+
+		if(strcmp(ptr, "CBP"))
+		{
+			//Traitement de la requete
+			status = CBP(requete,reponse,sService);
+		}
+		else
+		{
+			if (strcmp(ptr, "ACBP"))
+			{
+				status = ACBP(requete, reponse);
+			}
+		}
+		
 
 		//Envoi de la reponse
 		if ((nbEcrits = Send(sService,reponse,strlen(reponse))) < 0)

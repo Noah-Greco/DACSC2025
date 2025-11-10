@@ -17,11 +17,11 @@ PARAM_DIR = param
 BD_SRC = $(BD_DIR)/CreationBD.cpp
 CLIENT_SRC = $(CLIENT_DIR)/main.cpp $(CLIENT_DIR)/mainwindowclientconsultationbooker.cpp $(CLIENT_DIR)/moc_mainwindowclientconsultationbooker.cpp $(LIBRARY_DIR)/Librairie.cpp
 SOCKET_SRC = $(LIBRARY_DIR)/Librairie.cpp
-SERVEUR_SRC = $(SERVEUR_DIR)/Serveur.cpp $(LIBRARY_DIR)/Librairie.cpp $(PROTOCOLE_DIR)/CBP.cpp
+SERVEUR_SRC = $(SERVEUR_DIR)/Serveur.cpp $(LIBRARY_DIR)/Librairie.cpp $(PROTOCOLE_DIR)/CBP.cpp $(PROTOCOLE_DIR)/ACBP.cpp
 
 # Header files
 SOCKET_HEADERS = $(LIBRARY_DIR)/Librairie.hpp
-PROTOCOLE_HEADERS = $(PROTOCOLE_DIR)/CBP.hpp
+PROTOCOLE_HEADERS = $(PROTOCOLE_DIR)/CBP.hpp $(PROTOCOLE_DIR)/ACBP.hpp
 UTIL_HEADERS = $(PARAM_DIR)/param.h
 
 # Output binaries

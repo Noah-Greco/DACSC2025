@@ -8,10 +8,10 @@
 #include <pthread.h>
 #include <mysql/mysql.h>
 
-bool ACBP(char* requete, char* reponse,int socket);
+bool ACBP(char* requete, char* reponse);
 char * LIST_CLIENTS();
 
-bool ACBP(char * requete, char * reponse, int socket)
+bool ACBP(char * requete, char * reponse)
 {
     
 }

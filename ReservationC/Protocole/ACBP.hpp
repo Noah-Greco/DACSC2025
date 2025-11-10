@@ -3,7 +3,7 @@
 
 #define NB_MAX_CLIENTS 100
 
-bool ACBP(char* requete, char* reponse,int socket);
+bool ACBP(char* requete, char* reponse);
 char * LIST_CLIENTS();
 
 #endif
