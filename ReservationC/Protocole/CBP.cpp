@@ -529,19 +529,21 @@ char * CBP_All_Client()
 {
 	int i;
 	char rep[100];
-	strcpy(rep, "LIST_CLIENTS#");
+	strcpy(rep, "ALL_CLIENT#ok#");
 
 	pthread_mutex_lock(&mutexClients);
 	for(i = 0; i < NB_MAX_CLIENTS; i++)
 	{
-		strcpy(rep, clients[i].ipClient);
-		strcpy(rep, ";");
-		strcpy(rep, clients[i].nomClient);
-		strcpy(rep, ";");
-		strcpy(rep, clients[i].prenomClient);
-		strcpy(rep, ";");
-		strcpy(rep, clients[i].noClient);
-		strcpy(rep, "#");
+		strcat(rep, "#");
+		strcat(rep, clients[i].ipClient);
+		strcat(rep, ";");
+		strcat(rep, clients[i].nomClient);
+		strcat(rep, ";");
+		strcat(rep, clients[i].prenomClient);
+		strcat(rep, ";");
+		strcat(rep, clients[i].noClient);
 	}
 	pthread_mutex_unlock(&mutexClients);
+
+	return rep;
 }
