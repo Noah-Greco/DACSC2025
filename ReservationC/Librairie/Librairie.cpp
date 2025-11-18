@@ -11,6 +11,10 @@
 
 #ifndef TAILLE_MAX_DATA
 #define TAILLE_MAX_DATA 10000
+
+#define END_MARKER "##//##"
+#define END_MARKER_LEN 6
+
 #endif
 
 int ServerSocket(int port) {
@@ -94,18 +98,30 @@ int Send(int sSocket, const char* data, int taille) {
         return -1;
     }
 
+    // buffer complet = data + délimiteur
+    int totalSize = taille + END_MARKER_LEN;
+    char buffer[TAILLE_MAX_DATA];
+
+    if (totalSize >= TAILLE_MAX_DATA) {
+        errno = EMSGSIZE;
+        return -1;
+    }
+
+    memcpy(buffer, data, taille);
+    memcpy(buffer + taille, END_MARKER, END_MARKER_LEN);
+
     int total = 0;
-    while (total < taille) {
-        ssize_t n = send(sSocket, data + total, (size_t)(taille - total), MSG_NOSIGNAL);
-        if (n < 0) {//octet envoyé
-            if (errno == EINTR) continue;   // réessayer si interrompu
+    while (total < totalSize) {
+        ssize_t n = send(sSocket, buffer + total, totalSize - total, MSG_NOSIGNAL);
+        if (n < 0) {
+            if (errno == EINTR) continue;
             return -1;
         }
-        if (n == 0) {
-            break;
-        }
-        total += (int)n;//permet d'accumuler les octets jusqua la taille
+        if (n == 0) break;
+
+        total += n;
     }
+
     return total;
 }
 
@@ -116,25 +132,43 @@ int Receive(int sSocket, char* data) {
         return -1;
     }
 
-    ssize_t n = recv(sSocket, data, (size_t)TAILLE_MAX_DATA, 0);
-    if (n < 0) {
-        if (errno == EINTR) {
-            n = recv(sSocket, data, (size_t)TAILLE_MAX_DATA, 0);
-            if (n < 0) return -1;
-        } else {
+    char buffer[1024];
+    int total = 0;
+    data[0] = '\0';
+
+    while (1) {
+        ssize_t n = recv(sSocket, buffer, sizeof(buffer)-1, 0);
+
+        if (n < 0) {
+            if (errno == EINTR) continue;
             return -1;
         }
-    }
+        if (n == 0) {
+            // déconnexion du client
+            return 0;
+        }
 
-    // NUL-terminate si on a de la place (pratique pour des messages texte)
-    if (n >= 0) {
-        size_t cap = (size_t)TAILLE_MAX_DATA;
-        size_t idx = (size_t)((n < (ssize_t)cap) ? n : (ssize_t)(cap - 1));
-        data[idx] = '\0';
-    }
+        buffer[n] = '\0';
 
-    return (int)n;
+        // vérifier si on déborde
+        if (total + n >= TAILLE_MAX_DATA) {
+            errno = EMSGSIZE;
+            return -1;
+        }
+
+        memcpy(data + total, buffer, n);
+        total += n;
+        data[total] = '\0';
+
+        // vérifie si on a reçu le marqueur
+        char* pos = strstr(data, END_MARKER);
+        if (pos != NULL) {
+            *pos = '\0'; // coupe au marqueur
+            return (int)(pos - data); // taille utile
+        }
+    }
 }
+
 
 int closeSocket(int sSocket)
 {
