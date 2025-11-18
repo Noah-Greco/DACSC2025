@@ -1,19 +1,18 @@
-package HEPL.reservationAdmin.classe;
+package hepl.reservationAdmin.classe;
+
+import hepl.reservationAdmin.vue.FenetrePrincipale;
+
+import java.io.IOException;
+import java.net.Socket;
 
 public class Main {
-    public static void main(String[] args) {
-        try {
-            ClientAdmin client = new ClientAdmin("192.168.2.128", 8090, 1500, 3000);
+    public static void main(String[] args) throws IOException {
+        Socket clientSocket;
+        clientSocket = new Socket("127.0.0.1", 8090);
 
-            String reponse = client.call("ACBP#ALL_CLIENT");
-            System.out.println("Réponse brute : " + reponse);
 
-            var liste = client.parseAllClient(reponse);
-            for (ClientAdmin.ClientInfo c : liste) {
-                System.out.println(c);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        FenetrePrincipale fen = new FenetrePrincipale();
+        fen.setVisible(true);
     }
 }
