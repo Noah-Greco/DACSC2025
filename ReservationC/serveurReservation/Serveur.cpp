@@ -22,10 +22,10 @@ bool Dispatch(char* requete, char* reponse, int sService);
 int sEcoute;
 int sEcouteAdmin;
 
-int PORT_RESERVATION;
-int PORT_ADMIN;
-int NB_THREADS_POOL;
-int TAILLE_FILE_ATTENTE;
+int PORT_RESERVATION = -1;
+int PORT_ADMIN = -1;
+int NB_THREADS_POOL = -1;
+int TAILLE_FILE_ATTENTE = -1;
 
 int* socketsAcceptees;
 int indiceEcriture=0, indiceLecture=0;
@@ -45,6 +45,11 @@ int main(int argc,char* argv[])
 		printf("%s\n", argv[0]);
 		exit(1);
 	}
+
+	printf("PORT_RESERVATION = %d\n", PORT_RESERVATION);
+	printf("PORT_ADMIN       = %d\n", PORT_ADMIN);
+	printf("NB_THREADS_POOL  = %d\n", NB_THREADS_POOL);
+	printf("TAILLE_FILE_ATTENTE = %d\n", TAILLE_FILE_ATTENTE);
 
 	//Aloue la file qui stockera les socket en attente 
 	socketsAcceptees = (int*)malloc(TAILLE_FILE_ATTENTE * sizeof(int));
@@ -98,6 +103,9 @@ int main(int argc,char* argv[])
 	pthread_t thAdmin;
 	pthread_create(&thAdmin, NULL, ThreadAdminAcceptor, NULL);
 	pthread_detach(thAdmin);
+
+    printf("%d", PORT_ADMIN);
+
 
 	// Mise en boucle du serveur
 	int sService;
@@ -295,11 +303,7 @@ bool Dispatch(char* requete, char* reponse, int sService)
 	        	snprintf(reponse,200,"#ko#unknown_proto");}
     			return false;
 	        }
-	    }
-
-	    
-
-	    
+	    }   
 }
 
 //Charge serv.conf

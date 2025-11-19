@@ -68,13 +68,13 @@ bool CBP(char* requete, char* reponse,int socket)
 			if (res && strcmp(res, "NON") != 0) free(res);  // si CBP_Login a alloué
 
 		}
-		return true;
+		return false;
 	}
 
 	if (strcmp(ptr,"LOGOUT") == 0)
 	{
 		CBP_Logout(socket);
-		return true;
+		return false;
 	}
 
 	if (strcmp(ptr, "GET_SPECIALTIES") == 0) 
@@ -99,7 +99,7 @@ bool CBP(char* requete, char* reponse,int socket)
     	{
         	snprintf(reponse, 200, "GET_DOCTORS#ok#%s", res);
         	free(res);
-        	return true;
+        	return false;
     	} 
 	    else 
 	    {
@@ -126,7 +126,7 @@ bool CBP(char* requete, char* reponse,int socket)
 	    // Toujours renvoyer ok#, data possiblement vide
 	    snprintf(reponse, 200, "SEARCH_CONSULTATIONS#ok#%s", (data ? data : ""));
 	    if (data) free(data);
-	    return false; // ne pas fermer la connexion
+	    return false;
 	}
 
 
@@ -142,7 +142,7 @@ bool CBP(char* requete, char* reponse,int socket)
         int ID = atoi(idStr);
         bool ok = CBP_Book_Consultation(cons_id, reason, ID);
         snprintf(reponse, 200, "BOOK_CONSULTATION#%s", ok ? "ok" : "ko");
-        return false; // garder la connexion ouverte
+        return false;
     }
 }
 
