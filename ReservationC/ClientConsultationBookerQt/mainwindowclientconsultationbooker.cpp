@@ -309,7 +309,7 @@ bool MainWindowClientConsultationBooker::estConnecte() const
 
 bool MainWindowClientConsultationBooker::loginPatient(const string& nom, const string& prenom, int patientId, bool nouveauPatient)
 {
-    string requete = string(LOGIN) + diez + prenom + diez + nom + diez + to_string(patientId) + diez + (nouveauPatient ? "OUI" : "NON");
+    string requete = string(DCBP)+ diez + string(LOGIN) + diez + prenom + diez + nom + diez + to_string(patientId) + diez + (nouveauPatient ? "OUI" : "NON");
     string reponse;
     
     if (!envoyerRequete(requete, reponse))
@@ -329,7 +329,7 @@ bool MainWindowClientConsultationBooker::loginPatient(const string& nom, const s
 
 void MainWindowClientConsultationBooker::logoutPatient()
 {
-    string requete = LOGOUT;
+    string requete = string(DCBP) + diez + LOGOUT;
     string reponse;
     
     envoyerRequete(requete, reponse);
@@ -338,7 +338,7 @@ void MainWindowClientConsultationBooker::logoutPatient()
 
 bool MainWindowClientConsultationBooker::chargerSpecialties()
 {
-    std::string requete = GET_SPECIALTIES;
+    std::string requete = string(DCBP) + diez + GET_SPECIALTIES;
     std::string reponse;
     if (!envoyerRequete(requete, reponse)) return false;
 
@@ -368,7 +368,7 @@ bool MainWindowClientConsultationBooker::chargerSpecialties()
 
 bool MainWindowClientConsultationBooker::chargerDocteurs()
 {
-    std::string requete = GET_DOCTORS;
+    std::string requete = string(DCBP) + diez + GET_DOCTORS;
     std::string reponse;
     if (!envoyerRequete(requete, reponse)) return false;
 
@@ -423,7 +423,7 @@ bool MainWindowClientConsultationBooker::rechercherConsultations(const std::stri
         if (sp != std::string::npos) doc = doc.substr(0, sp);
     }
 
-    std::string requete = std::string(SEARCH_CONSULTATIONS) + diez
+    std::string requete = string(DCBP) + diez + std::string(SEARCH_CONSULTATIONS) + diez
                         + spec + diez + doc + diez + dateDebut + diez + dateFin;
 
     std::string reponse;
@@ -476,7 +476,7 @@ bool MainWindowClientConsultationBooker::rechercherConsultations(const std::stri
 
 
 bool MainWindowClientConsultationBooker::reserverConsultation(int consultationId, const std::string& raison, int patientId) {
-    std::string requete = std::string(BOOK_CONSULTATION) + diez
+    std::string requete = string(DCBP) + diez + std::string(BOOK_CONSULTATION) + diez
                         + std::to_string(consultationId) + diez
                         + raison + diez
                         + std::to_string(patientId);

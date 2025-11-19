@@ -9,12 +9,11 @@
 
 #include "Librairie.hpp"
 
-#ifndef TAILLE_MAX_DATA
-#define TAILLE_MAX_DATA 10000
-
 #define END_MARKER "##//##"
 #define END_MARKER_LEN 6
 
+#ifndef TAILLE_MAX_DATA
+#define TAILLE_MAX_DATA 10000
 #endif
 
 int ServerSocket(int port) {
@@ -84,10 +83,14 @@ int ClientSocket(const char* ipServeur, int portServeur) {
         errno = EINVAL;
         return -1;
     }
+    printf("Jme pend\n");
     if (connect(s, (struct sockaddr*)&srv, sizeof(srv)) < 0) {
+        printf("maintenant ou plus tard ?\n");
         close(s);
+
         return -1;
     }
+    printf("No way ça a fonctionné\n");
 
     return s;
 }

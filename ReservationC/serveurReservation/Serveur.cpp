@@ -281,15 +281,25 @@ bool Dispatch(char* requete, char* reponse, int sService)
 
     char* tag = strtok(tmp, "#");     // "CBP" ou "ACBP"
     if (!tag) { snprintf(reponse,200,"#ko#bad_request"); return false; }
+    else
+	{   
+		if (strcmp(tag, "CBP") == 0)      // == 0 quand égal
+	    	return CBP(requete, reponse, sService);
+	    else
+	    {
+	    	if (strcmp(tag, "ACBP") == 0)
+	        	return ACBP(requete, reponse);
 
-    if (strcmp(tag, "CBP") == 0)      // == 0 quand égal
-        return CBP(requete, reponse, sService);
+	        else
+	        {
+	        	snprintf(reponse,200,"#ko#unknown_proto");}
+    			return false;
+	        }
+	    }
 
-    if (strcmp(tag, "ACBP") == 0)
-        return ACBP(requete, reponse);
+	    
 
-    snprintf(reponse,200,"#ko#unknown_proto");
-    return false;
+	    
 }
 
 //Charge serv.conf
