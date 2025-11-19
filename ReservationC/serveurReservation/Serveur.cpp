@@ -10,6 +10,8 @@
 #include "../Protocole/ACBP.hpp"
 #include "../param/param.h"
 
+#define TAILLE_MAX_DATA 10000
+
 void HandlerSIGINT(int s);
 void TraitementConnexion(int sService);
 void* FctThreadClient(void* p);
@@ -188,7 +190,7 @@ void* ThreadAdminAcceptor(void*)
     return NULL;
 }
 
-void* ThreadAdminService(void* p)
+/*void* ThreadAdminService(void* p)
 {
     int sService = *(int*)p; free(p);
     char req[200], rep[200];
@@ -211,7 +213,69 @@ void* ThreadAdminService(void* p)
         if (Send(sService, rep, strlen(rep)) < 0) { close(sService); return NULL; }
         if (fermer) { close(sService); return NULL; }
     }
+}*/
+
+void* ThreadAdminService(void* p)
+{
+    int sService = *(int*)p;
+    free(p);
+
+    char req[TAILLE_MAX_DATA];
+    char rep[TAILLE_MAX_DATA];
+
+    printf("[ADMIN] Nouveau client admin sur socket %d\n", sService);
+
+    while (1)
+    {
+        int n = Receive(sService, req);
+        printf("[ADMIN] Receive retourne %d octets sur socket %d\n", n, sService);
+
+        if (n <= 0) {
+            printf("[ADMIN] Fin connexion admin socket %d\n", sService);
+            close(sService);
+            return NULL;
+        }
+
+        // Sécurisation : ne JAMAIS écrire au-delà du buffer
+        if (n >= (int)sizeof(req)) n = (int)sizeof(req) - 1;
+        req[n] = 0;
+
+        printf("[ADMIN] Requête brute = '%s'\n", req);
+
+        // On copie pour tester le tag sans détruire la requête originale
+        char tmp[TAILLE_MAX_DATA];
+        strncpy(tmp, req, sizeof(tmp) - 1);
+        tmp[sizeof(tmp) - 1] = 0;
+
+        char* tag = strtok(tmp, "#");
+        if (!tag || strcmp(tag, "ACBP") != 0) {
+            snprintf(rep, sizeof(rep), "#ko#admin_only_acbp");
+            Send(sService, rep, strlen(rep));
+            printf("[ADMIN] Proto invalide, fermeture socket %d\n", sService);
+            close(sService);
+            return NULL;
+        }
+
+        bool fermer = ACBP(req, rep);
+        printf("[ADMIN] Réponse ACBP = '%s' (fermer=%d)\n", rep, fermer);
+
+        int lenRep = (int)strlen(rep);
+        if (Send(sService, rep, lenRep) < 0) {
+            perror("[ADMIN] Erreur Send");
+            close(sService);
+            return NULL;
+        }
+
+        if (fermer) {
+            printf("[ADMIN] ACBP demande fermeture socket %d\n", sService);
+            close(sService);
+            return NULL;
+        }
+    }
 }
+
+
+
 
 void HandlerSIGINT(int s)
 {
@@ -232,7 +296,7 @@ void HandlerSIGINT(int s)
 }
 void TraitementConnexion(int sService)
 {
-	char requete[200], reponse[200];
+	char requete[TAILLE_MAX_DATA], reponse[TAILLE_MAX_DATA];
 	int nbLus, nbEcrits;
 	int status = SUCCES;
 

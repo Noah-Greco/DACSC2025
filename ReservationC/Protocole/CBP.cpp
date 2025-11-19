@@ -340,6 +340,9 @@ char * CBP_Login(const char* firstName,const char* lastName, const char * NoPati
 						if(strcmp(id, row[0]) == 0)
 						{
 							printf("Le NoPatient est bon. Connection OK");
+
+							ajoute(socket, NumPatient, firstName, lastName, NoPatient);
+							
 							mysql_free_result(res);
 							mysql_close(connection);
 							return strdup("LOGIN#ok");
@@ -527,23 +530,34 @@ bool CBP_Book_Consultation(char* consultationId, const char* reason, int id)
 
 char * CBP_All_Client()
 {
-	int i;
-	char rep[100];
-	strcpy(rep, "ALL_CLIENT#ok#");
+    pthread_mutex_lock(&mutexClients);
 
-	pthread_mutex_lock(&mutexClients);
-	for(i = 0; i < NB_MAX_CLIENTS; i++)
-	{
-		strcat(rep, "#");
-		strcat(rep, clients[i].ipClient);
-		strcat(rep, ";");
-		strcat(rep, clients[i].nomClient);
-		strcat(rep, ";");
-		strcat(rep, clients[i].prenomClient);
-		strcat(rep, ";");
-		strcat(rep, clients[i].noClient);
-	}
-	pthread_mutex_unlock(&mutexClients);
+    std::string out;
 
-	return rep;
+    for (int i = 0; i < nbClients; ++i)
+    {
+        if (clients[i].noClient[0] == '\0')
+            continue;
+
+        if (!out.empty())
+            out.push_back('#');
+
+        out += clients[i].ipClient;
+        out.push_back(';');
+        out += clients[i].nomClient;
+        out.push_back(';');
+        out += clients[i].prenomClient;
+        out.push_back(';');
+        out += clients[i].noClient;
+    }
+
+    pthread_mutex_unlock(&mutexClients);
+
+    char *res = (char*)malloc(out.size() + 1);
+    if (!res)
+        return NULL;
+
+    memcpy(res, out.c_str(), out.size() + 1); // +1 pour le '\0'
+    return res;   // peut être "" si aucun client
 }
+
