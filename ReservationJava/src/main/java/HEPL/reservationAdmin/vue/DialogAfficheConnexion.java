@@ -1,4 +1,4 @@
-package hepl.reservationAdmin.vue;
+package HEPL.reservationAdmin.vue;
 
 public class DialogAfficheConnexion
 {

@@ -1,4 +1,4 @@
-package hepl.reservationAdmin.vue;
+package HEPL.reservationAdmin.vue;
 
 import javax.swing.*;
 import java.io.InputStream;
@@ -11,12 +11,12 @@ public class FenetrePrincipale extends JFrame {
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JButton btnAfficheConnexion = new JButton("Afficher les user connectés");
+        /*JButton btnAfficheConnexion = new JButton("Afficher les user connectés");
 
         btnAfficheConnexion.addActionListener(e -> {
-            DialogAfficheConnexion dialogMenu = new DialogAfficheConnexion(this);
+            DialogAfficheConnexion dialogAfficheConnexion = new DialogAfficheConnexion(this);
         });
-        panel.add(btnAfficheConnexion);
+        panel.add(btnAfficheConnexion);*/
 
         setContentPane(panel);
     }

@@ -1,16 +1,26 @@
-package hepl.reservationAdmin.classe;
+package HEPL.reservationAdmin.classe;
 
-import hepl.reservationAdmin.vue.FenetrePrincipale;
+import HEPL.reservationAdmin.vue.FenetrePrincipale;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         Socket clientSocket;
-        clientSocket = new Socket("127.0.0.1", 8090);
+        clientSocket = new Socket("192.168.2.129", 8090);
 
+        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
+        out.print("ACBP#ALL_CLIENT##//##");
+        out.flush();
+
+        String reponse = LecteurProtocole.lireMessage(clientSocket.getInputStream());
+        System.out.println("Réponse du serveur : " + reponse);
 
         FenetrePrincipale fen = new FenetrePrincipale();
         fen.setVisible(true);
