@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class Consultation implements Serializable {
-    private int id;
+    private Integer id;
     private int doctor_id;
     private int patient_id;
     private LocalDate dateConsultation;
@@ -29,11 +29,11 @@ public class Consultation implements Serializable {
         this.id = id;
     }
 
-    public int getId()
+    public Integer getId()
     {
         return id;
     }
-    public void setId(int id)
+    public void setId(Integer id)
     {
         this.id = id;
     }
