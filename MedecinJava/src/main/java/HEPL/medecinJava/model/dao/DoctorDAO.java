@@ -2,6 +2,8 @@ package HEPL.medecinJava.model.dao;
 
 import HEPL.medecinJava.model.entity.Doctor;
 
+import HEPL.medecinJava.model.viewmodel.DoctorSearchVM;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -136,4 +138,55 @@ public class DoctorDAO {
                 rs.getString("first_name")
         );
     }
+
+    public ArrayList<Doctor> load(DoctorSearchVM searchVM) {
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT id, specialty_id, last_name, first_name FROM doctors WHERE 1=1"
+            );
+
+            if (searchVM != null) {
+                if (searchVM.getId() != null) {
+                    sql.append(" AND id = ?");
+                }
+                if (searchVM.getSpecialtyId() != null) {
+                    sql.append(" AND specialty_id = ?");
+                }
+                if (searchVM.getLastName() != null && !searchVM.getLastName().isEmpty()) {
+                    sql.append(" AND last_name LIKE ?");
+                }
+            }
+
+            sql.append(" ORDER BY last_name, first_name");
+
+            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+
+            int index = 1;
+            if (searchVM != null) {
+                if (searchVM.getId() != null) {
+                    stmt.setInt(index++, searchVM.getId());
+                }
+                if (searchVM.getSpecialtyId() != null) {
+                    stmt.setInt(index++, searchVM.getSpecialtyId());
+                }
+                if (searchVM.getLastName() != null && !searchVM.getLastName().isEmpty()) {
+                    stmt.setString(index++, searchVM.getLastName() + "%");
+                }
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            doctors.clear();
+
+            while (rs.next()) {
+                doctors.add(mapRow(rs));
+            }
+
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DoctorDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            return doctors;
+        }
+    }
+
 }

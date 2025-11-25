@@ -2,6 +2,8 @@ package HEPL.medecinJava.model.dao;
 
 import HEPL.medecinJava.model.entity.Specialty;
 
+import HEPL.medecinJava.model.viewmodel.SpecialtySearchVM;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -130,4 +132,49 @@ public class SpecialtyDAO {
                 rs.getString("name")
         );
     }
+
+    public ArrayList<Specialty> load(SpecialtySearchVM searchVM) {
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT id, name FROM specialties WHERE 1=1"
+            );
+
+            if (searchVM != null) {
+                if (searchVM.getId() != null) {
+                    sql.append(" AND id = ?");
+                }
+                if (searchVM.getName() != null && !searchVM.getName().isEmpty()) {
+                    sql.append(" AND name LIKE ?");
+                }
+            }
+
+            sql.append(" ORDER BY name");
+
+            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+
+            int index = 1;
+            if (searchVM != null) {
+                if (searchVM.getId() != null) {
+                    stmt.setInt(index++, searchVM.getId());
+                }
+                if (searchVM.getName() != null && !searchVM.getName().isEmpty()) {
+                    stmt.setString(index++, searchVM.getName() + "%");
+                }
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            specialties.clear();
+
+            while (rs.next()) {
+                specialties.add(mapRow(rs));
+            }
+
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(SpecialtyDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            return specialties;
+        }
+    }
+
 }

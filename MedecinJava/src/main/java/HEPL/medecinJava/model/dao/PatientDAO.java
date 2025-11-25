@@ -2,6 +2,8 @@ package HEPL.medecinJava.model.dao;
 
 import HEPL.medecinJava.model.entity.Patient;
 
+import HEPL.medecinJava.model.viewmodel.PatientSearchVM;
+
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -149,4 +151,55 @@ public class PatientDAO {
                 (sqlDate != null) ? sqlDate.toLocalDate() : null
         );
     }
+
+    public ArrayList<Patient> load(PatientSearchVM searchVM) {
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT id, first_name, last_name, birth_date FROM patients WHERE 1=1"
+            );
+
+            if (searchVM != null) {
+                if (searchVM.getId() != null) {
+                    sql.append(" AND id = ?");
+                }
+                if (searchVM.getLastName() != null && !searchVM.getLastName().isEmpty()) {
+                    sql.append(" AND last_name LIKE ?");
+                }
+                if (searchVM.getFirstName() != null && !searchVM.getFirstName().isEmpty()) {
+                    sql.append(" AND first_name LIKE ?");
+                }
+            }
+
+            sql.append(" ORDER BY last_name, first_name");
+
+            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+
+            int index = 1;
+            if (searchVM != null) {
+                if (searchVM.getId() != null) {
+                    stmt.setInt(index++, searchVM.getId());
+                }
+                if (searchVM.getLastName() != null && !searchVM.getLastName().isEmpty()) {
+                    stmt.setString(index++, searchVM.getLastName() + "%");
+                }
+                if (searchVM.getFirstName() != null && !searchVM.getFirstName().isEmpty()) {
+                    stmt.setString(index++, searchVM.getFirstName() + "%");
+                }
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            patients.clear();
+
+            while (rs.next()) {
+                patients.add(mapRow(rs));
+            }
+
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(PatientDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            return patients;
+        }
+    }
+
 }

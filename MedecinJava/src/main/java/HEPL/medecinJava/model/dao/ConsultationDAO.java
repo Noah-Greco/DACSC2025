@@ -2,6 +2,8 @@ package HEPL.medecinJava.model.dao;
 
 import HEPL.medecinJava.model.entity.Consultation;
 
+import HEPL.medecinJava.model.viewmodel.ConsultationSearchVM;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -189,5 +191,108 @@ public class ConsultationDAO {
 
         return c;
     }
+
+    public ArrayList<Consultation> load(ConsultationSearchVM searchVM) {
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT c.id, c.date_consultation, c.heure, " +
+                            "       c.id_medecin, c.id_patient, c.motif " +
+                            "FROM consultations c " +
+                            "JOIN doctors d ON c.id_medecin = d.id " +
+                            "WHERE 1=1"
+            );
+
+            // ======================
+            // Construction WHERE
+            // ======================
+            if (searchVM != null) {
+
+                if (searchVM.getId() != null) {
+                    sql.append(" AND c.id = ?");
+                }
+                if (searchVM.getDoctorId() != null) {
+                    sql.append(" AND c.id_medecin = ?");
+                }
+                if (searchVM.getPatientId() != null) {
+                    sql.append(" AND c.id_patient = ?");
+                }
+
+                // FILTRE DATE
+                if (searchVM.getDateConsultation() != null) {
+                    sql.append(" AND c.date_consultation >= ?");
+                }
+                if (searchVM.getDateConsultationTo() != null) {
+                    sql.append(" AND c.date_consultation <= ?");
+                }
+
+                // FILTRE HEURE
+                if (searchVM.getTimeConsultation() != null) {
+                    sql.append(" AND c.heure >= ?");
+                }
+                if (searchVM.getTimeConsultationTo() != null) {
+                    sql.append(" AND c.heure <= ?");
+                }
+
+                // FILTRE MOTIF (LIKE)
+                if (searchVM.getReason() != null && !searchVM.getReason().isEmpty()) {
+                    sql.append(" AND c.motif LIKE ?");
+                }
+            }
+
+            sql.append(" ORDER BY c.date_consultation, c.heure");
+
+            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+
+            // ======================
+            // Remplissage des paramètres
+            // ======================
+            int index = 1;
+            if (searchVM != null) {
+
+                if (searchVM.getId() != null) {
+                    stmt.setInt(index++, searchVM.getId());
+                }
+                if (searchVM.getDoctorId() != null) {
+                    stmt.setInt(index++, searchVM.getDoctorId());
+                }
+                if (searchVM.getPatientId() != null) {
+                    stmt.setInt(index++, searchVM.getPatientId());
+                }
+
+                if (searchVM.getDateConsultation() != null) {
+                    stmt.setDate(index++, Date.valueOf(searchVM.getDateConsultation()));
+                }
+                if (searchVM.getDateConsultationTo() != null) {
+                    stmt.setDate(index++, Date.valueOf(searchVM.getDateConsultationTo()));
+                }
+
+                if (searchVM.getTimeConsultation() != null) {
+                    stmt.setTime(index++, Time.valueOf(searchVM.getTimeConsultation()));
+                }
+                if (searchVM.getTimeConsultationTo() != null) {
+                    stmt.setTime(index++, Time.valueOf(searchVM.getTimeConsultationTo()));
+                }
+
+                if (searchVM.getReason() != null && !searchVM.getReason().isEmpty()) {
+                    stmt.setString(index++, searchVM.getReason() + "%");
+                }
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            consultations.clear();
+
+            while (rs.next()) {
+                consultations.add(mapRow(rs));
+            }
+
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(ConsultationDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            return consultations;
+        }
+    }
+
+
 
 }
