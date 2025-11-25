@@ -11,7 +11,7 @@ public class ConnectionBD {
     public ConnectionBD() {
         try {
             conn = DriverManager.getConnection(
-                    "jdbc:mysql://<IP_VM>:3306/PourStudent?serverTimezone=UTC",
+                    "jdbc:mysql://192.168.2.129:3306/PourStudent?serverTimezone=UTC",
                     "Student",
                     "PassStudent1_"
             );

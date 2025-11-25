@@ -6,8 +6,8 @@ import java.time.LocalTime;
 
 public class Consultation implements Serializable {
     private Integer id;
-    private int doctor_id;
-    private int patient_id;
+    private Integer doctor_id;
+    private Integer patient_id;
     private LocalDate dateConsultation;
     private LocalTime timeConsultation;
     private String reason;
@@ -38,22 +38,22 @@ public class Consultation implements Serializable {
         this.id = id;
     }
 
-    public int getDoctor_id()
+    public Integer getDoctor_id()
     {
         return doctor_id;
     }
 
-    public void setDoctor_id(int doctor_id)
+    public void setDoctor_id(Integer doctor_id)
     {
         this.doctor_id = doctor_id;
     }
 
-    public int getPatient_id()
+    public Integer getPatient_id()
     {
         return patient_id;
     }
 
-    public void setPatient_id(int patient_id)
+    public void setPatient_id(Integer patient_id)
     {
         this.patient_id = patient_id;
     }
