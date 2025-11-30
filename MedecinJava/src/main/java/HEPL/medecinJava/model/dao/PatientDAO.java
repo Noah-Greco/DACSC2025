@@ -4,10 +4,8 @@ import HEPL.medecinJava.model.entity.Patient;
 
 import HEPL.medecinJava.model.viewmodel.PatientSearchVM;
 
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.IOException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -15,11 +13,16 @@ import java.util.logging.Logger;
 
 public class PatientDAO {
 
-    private ConnectionBD connectionBD;
+    private Connection connection;
     private ArrayList<Patient> patients;
 
     public PatientDAO() {
-        connectionBD = new ConnectionBD();   // comme ConnectDB dans le cours
+        try
+        {
+            this.connection = new ConnectionBD().getConnection();
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException("Erreur BD : " + e.getMessage(), e);
+        }
         patients = new ArrayList<>();
     }
 
@@ -43,7 +46,7 @@ public class PatientDAO {
             String sql = "SELECT id, first_name, last_name, birth_date " +
                     "FROM patients ORDER BY last_name, first_name";
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             patients.clear();
@@ -73,7 +76,7 @@ public class PatientDAO {
                 sql = "UPDATE patients SET first_name = ?, last_name = ?, birth_date = ? " +
                         "WHERE id = ?";
 
-                PreparedStatement pStmt = connectionBD.getConnection().prepareStatement(sql);
+                PreparedStatement pStmt = connection.prepareStatement(sql);
                 setCommonParameters(pStmt, p);
                 pStmt.setInt(4, p.getId());
 
@@ -85,8 +88,7 @@ public class PatientDAO {
                 sql = "INSERT INTO patients (first_name, last_name, birth_date) " +
                         "VALUES (?, ?, ?)";
 
-                PreparedStatement pStmt = connectionBD.getConnection()
-                        .prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                PreparedStatement pStmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
 
                 setCommonParameters(pStmt, p);
                 pStmt.executeUpdate();
@@ -130,7 +132,7 @@ public class PatientDAO {
 
         try {
             String sql = "DELETE FROM patients WHERE id = ?";
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, id);
             stmt.executeUpdate();
             stmt.close();
@@ -172,7 +174,7 @@ public class PatientDAO {
 
             sql.append(" ORDER BY last_name, first_name");
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+            PreparedStatement stmt = connection.prepareStatement(sql.toString());
 
             int index = 1;
             if (searchVM != null) {
@@ -201,5 +203,25 @@ public class PatientDAO {
             return patients;
         }
     }
+
+    /**
+     * Ajoute un patient avec nom / prénom et renvoie son id.
+     * birth_date est laissée à null.
+     */
+    public int addPatient(String lastName, String firstName) throws SQLException {
+        Patient p = new Patient();
+        p.setFirstName(firstName);
+        p.setLastName(lastName);
+        p.setBirthDate(null); // ou une date par défaut si tu veux
+
+        save(p); // save() fait l'INSERT et récupère l'id
+
+        if (p.getId() == null || p.getId() <= 0) {
+            throw new SQLException("Insertion patient échouée, id non généré");
+        }
+
+        return p.getId();
+    }
+
 
 }

@@ -4,6 +4,8 @@ import HEPL.medecinJava.model.entity.Specialty;
 
 import HEPL.medecinJava.model.viewmodel.SpecialtySearchVM;
 
+import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,11 +16,16 @@ import java.util.logging.Logger;
 
 public class SpecialtyDAO {
 
-    private ConnectionBD connectionBD;
+    private Connection connection;
     private ArrayList<Specialty> specialties;
 
     public SpecialtyDAO() {
-        connectionBD = new ConnectionBD();     // comme ConnectDB dans ton cours
+        try
+        {
+            this.connection = new ConnectionBD().getConnection();
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException("Erreur BD : " + e.getMessage(), e);
+        }
         specialties = new ArrayList<>();
     }
 
@@ -41,7 +48,7 @@ public class SpecialtyDAO {
         try {
             String sql = "SELECT id, name FROM specialties ORDER BY name";
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             specialties.clear();
@@ -70,7 +77,7 @@ public class SpecialtyDAO {
                 // UPDATE
                 sql = "UPDATE specialties SET name = ? WHERE id = ?";
 
-                PreparedStatement pStmt = connectionBD.getConnection().prepareStatement(sql);
+                PreparedStatement pStmt = connection.prepareStatement(sql);
                 pStmt.setString(1, s.getName());
                 pStmt.setInt(2, s.getId());
 
@@ -81,8 +88,7 @@ public class SpecialtyDAO {
                 // INSERT
                 sql = "INSERT INTO specialties (name) VALUES (?)";
 
-                PreparedStatement pStmt = connectionBD.getConnection()
-                        .prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                PreparedStatement pStmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
 
                 pStmt.setString(1, s.getName());
                 pStmt.executeUpdate();
@@ -114,7 +120,7 @@ public class SpecialtyDAO {
 
         try {
             String sql = "DELETE FROM specialties WHERE id = ?";
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, id);
             stmt.executeUpdate();
             stmt.close();
@@ -150,7 +156,7 @@ public class SpecialtyDAO {
 
             sql.append(" ORDER BY name");
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+            PreparedStatement stmt = connection.prepareStatement(sql.toString());
 
             int index = 1;
             if (searchVM != null) {

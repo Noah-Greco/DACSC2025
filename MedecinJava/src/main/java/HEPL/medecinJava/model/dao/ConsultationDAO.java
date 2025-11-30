@@ -3,8 +3,10 @@ package HEPL.medecinJava.model.dao;
 import HEPL.medecinJava.model.entity.Consultation;
 import HEPL.medecinJava.model.viewmodel.ConsultationSearchVM;
 
+import java.io.IOException;
 import java.sql.*;
 import java.time.LocalTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -15,11 +17,17 @@ import java.util.logging.Logger;
 
 public class ConsultationDAO {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("H:mm");
-    private ConnectionBD connectionBD;
+    private Connection connection;
     private ArrayList<Consultation> consultations;
 
     public ConsultationDAO() {
-        connectionBD = new ConnectionBD();
+        try
+        {
+            this.connection = new ConnectionBD().getConnection();
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException("Erreur BD : " + e.getMessage(), e);
+        }
+
         consultations = new ArrayList<>();
     }
 
@@ -40,7 +48,7 @@ public class ConsultationDAO {
         try {
             String sql = "SELECT * FROM consultations ORDER BY date, hour";
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             consultations.clear();
@@ -72,7 +80,7 @@ public class ConsultationDAO {
                         "SET date = ?, hour = ?, doctor_id = ?, patient_id = ?, reason = ? " +
                         "WHERE id = ?";
 
-                PreparedStatement pStmt = connectionBD.getConnection().prepareStatement(sql);
+                PreparedStatement pStmt = connection.prepareStatement(sql);
                 setCommonParameters(pStmt, c);
                 pStmt.setInt(6, c.getId());
                 pStmt.executeUpdate();
@@ -81,8 +89,7 @@ public class ConsultationDAO {
                 sql = "INSERT INTO consultations (date, hour, doctor_id, patient_id, reason) " +
                         "VALUES (?, ?, ?, ?, ?)";
 
-                PreparedStatement pStmt = connectionBD.getConnection()
-                        .prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                PreparedStatement pStmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
                 setCommonParameters(pStmt, c);
                 pStmt.executeUpdate();
 
@@ -142,7 +149,7 @@ public class ConsultationDAO {
 
         try {
             String sql = "DELETE FROM consultations WHERE id = ?";
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, id);
             stmt.executeUpdate();
             stmt.close();
@@ -237,7 +244,7 @@ public class ConsultationDAO {
 
             sql.append(" ORDER BY c.date, c.hour");
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+            PreparedStatement stmt = connection.prepareStatement(sql.toString());
 
             int index = 1;
             if (searchVM != null) {
@@ -285,4 +292,106 @@ public class ConsultationDAO {
             return consultations;
         }
     }
+
+    /**
+     * Crée une série de consultations consécutives pour un médecin.
+     *
+     * @param doctorId          id du médecin
+     * @param date              date des consultations
+     * @param startTime         heure de départ
+     * @param durationMinutes   durée d'une consultation en minutes
+     * @param count             nombre de consultations consécutives
+     * @return true si toutes les consultations ont été créées, false si impossible (dépasse 17h00, etc.)
+     */
+    public boolean addConsultations(int doctorId,
+                                    LocalDate date,
+                                    LocalTime startTime,
+                                    int durationMinutes,
+                                    int count) throws SQLException {
+
+        if (count <= 0 || durationMinutes <= 0) return false;
+
+        LocalTime endOfDay = LocalTime.of(17, 0);
+        LocalTime current = startTime;
+
+        for (int i = 0; i < count; i++) {
+            LocalTime finConsult = current.plusMinutes(durationMinutes);
+
+            // Si on dépasse 17h00, on considère que la série est invalide
+            if (finConsult.isAfter(endOfDay)) {
+                return false;
+            }
+
+            Consultation c = new Consultation();
+            c.setDateConsultation(date);
+            c.setTimeConsultation(current);
+            c.setDoctor_id(doctorId);
+            c.setPatient_id(null);  // au départ, pas de patient
+            c.setReason(null);      // pas encore de motif
+
+            save(c); // INSERT via la méthode existante
+
+            current = finConsult;
+        }
+        return true;
+    }
+
+    /**
+     * Met à jour une consultation existante selon les infos fournies.
+     * Les champs null ne sont pas modifiés.
+     */
+    public boolean updateConsultation(int idConsultation,
+                                      LocalDate nouvelleDate,
+                                      LocalTime nouvelleHeure,
+                                      Integer patientId,
+                                      String raison) throws SQLException {
+
+        Consultation c = getById(idConsultation);
+        if (c == null) {
+            return false;
+        }
+
+        if (nouvelleDate != null) {
+            c.setDateConsultation(nouvelleDate);
+        }
+        if (nouvelleHeure != null) {
+            c.setTimeConsultation(nouvelleHeure);
+        }
+        if (patientId != null) {
+            c.setPatient_id(patientId);
+        }
+        if (raison != null) {
+            c.setReason(raison);
+        }
+
+        save(c); // UPDATE via la méthode existante
+        return true;
+    }
+
+    /**
+     * Recherche des consultations pour un patient et une date donnée (même jour).
+     */
+    public ArrayList<Consultation> searchConsultations(Integer patientId,
+                                                       LocalDate date) throws SQLException {
+
+        ConsultationSearchVM vm = new ConsultationSearchVM();
+        vm.setPatientId(patientId);
+        vm.setDateConsultation(date);
+        vm.setDateConsultationTo(date); // même jour
+
+        return load(vm);
+    }
+
+    /**
+     * Supprime une consultation par id et indique si elle existait.
+     */
+    public boolean deleteConsultation(int id) throws SQLException {
+        Consultation c = getById(id);
+        if (c == null) {
+            return false;
+        }
+        delete(c); // utilise la méthode existante
+        return true;
+    }
+
 }

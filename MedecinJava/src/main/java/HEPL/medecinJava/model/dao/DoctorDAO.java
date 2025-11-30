@@ -4,6 +4,7 @@ import HEPL.medecinJava.model.entity.Doctor;
 
 import HEPL.medecinJava.model.viewmodel.DoctorSearchVM;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -12,11 +13,17 @@ import java.util.logging.Logger;
 
 public class DoctorDAO {
 
-    private ConnectionBD connectionBD;
+    private Connection connection;
     private ArrayList<Doctor> doctors;
 
     public DoctorDAO() {
-        connectionBD = new ConnectionBD();        // même principe que ConnectDB dans le cours
+        try
+        {
+            this.connection = new ConnectionBD().getConnection();
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException("Erreur BD : " + e.getMessage(), e);
+        }
+
         doctors = new ArrayList<>();
     }
 
@@ -39,7 +46,7 @@ public class DoctorDAO {
         try {
             String sql = "SELECT id, specialty_id, last_name, first_name FROM doctors ORDER BY last_name";
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             doctors.clear();
@@ -68,7 +75,7 @@ public class DoctorDAO {
                 // UPDATE
                 sql = "UPDATE doctors SET specialty_id = ?, last_name = ?, first_name = ? WHERE id = ?";
 
-                PreparedStatement pStmt = connectionBD.getConnection().prepareStatement(sql);
+                PreparedStatement pStmt = connection.prepareStatement(sql);
                 setCommonParameters(pStmt, d);
                 pStmt.setInt(4, d.getId());
 
@@ -79,8 +86,7 @@ public class DoctorDAO {
                 // INSERT
                 sql = "INSERT INTO doctors (specialty_id, last_name, first_name) VALUES (?, ?, ?)";
 
-                PreparedStatement pStmt = connectionBD.getConnection()
-                        .prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                PreparedStatement pStmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
 
                 setCommonParameters(pStmt, d);
                 pStmt.executeUpdate();
@@ -119,7 +125,7 @@ public class DoctorDAO {
 
         try {
             String sql = "DELETE FROM doctors WHERE id = ?";
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql);
+            PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, id);
             stmt.executeUpdate();
             stmt.close();
@@ -159,7 +165,7 @@ public class DoctorDAO {
 
             sql.append(" ORDER BY last_name, first_name");
 
-            PreparedStatement stmt = connectionBD.getConnection().prepareStatement(sql.toString());
+            PreparedStatement stmt = connection.prepareStatement(sql.toString());
 
             int index = 1;
             if (searchVM != null) {
@@ -187,6 +193,28 @@ public class DoctorDAO {
         } finally {
             return doctors;
         }
+    }
+
+
+    public Doctor findByIdAndPassword(int id, String password) throws SQLException {
+        String sql = "SELECT id, specialty_id, last_name, first_name " +
+                "FROM doctors WHERE id = ? AND password = ?";
+
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setInt(1, id);
+        stmt.setString(2, password);
+
+        ResultSet rs = stmt.executeQuery();
+
+        Doctor found = null;
+        if (rs.next()) {
+            found = mapRow(rs); // mapRow existe déjà et ne lit pas le password, ce n'est pas grave
+        }
+
+        rs.close();
+        stmt.close();
+
+        return found;
     }
 
 }
