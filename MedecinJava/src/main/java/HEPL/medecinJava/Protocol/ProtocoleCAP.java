@@ -198,9 +198,8 @@ public class ProtocoleCAP implements Protocole {
             // 1. Construire le SearchVM à partir de la requête CAP
             ConsultationSearchVM vm = new ConsultationSearchVM();
 
-            // Si ta requête CAP a bien ces getters (à adapter si noms différents)
-            if (r.getIdPatient() != null) {
-                vm.setPatientId(r.getIdPatient());
+            if (r.getIdDoctor() != null) {
+                vm.setDoctorId(r.getIdDoctor());
             }
             if (r.getDate() != null) {
                 vm.setDateConsultation(r.getDate());
@@ -232,12 +231,6 @@ public class ProtocoleCAP implements Protocole {
     // ------------ DELETE_CONSULTATION ------------
     private ReponseCAPDeleteConsultation traiteDeleteConsultation(RequeteCAPDeleteConsultation r) {
         try {
-            // ====================================================
-            // ICI : appel à ConsultationDAO pour supprimer.
-            // Exemple POSSIBLE :
-            //    boolean ok = consultationDAO.delete(r.getIdConsultation());
-            // ====================================================
-
             // TODO: remplace par la vraie méthode
             boolean ok = consultationDAO.deleteConsultation(r.getIdConsultation());
 

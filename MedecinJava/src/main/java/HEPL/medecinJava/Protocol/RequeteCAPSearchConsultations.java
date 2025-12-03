@@ -4,20 +4,20 @@ import java.time.LocalDate;
 
 public class RequeteCAPSearchConsultations extends RequeteCAP {
 
-    private final Integer idPatient; // ou nom/prénom selon ton searchVM
-    private final LocalDate date;    // date de début ou exacte, selon ton design
+    private final Integer idDoctor;
+    private final LocalDate date;
 
-    public RequeteCAPSearchConsultations(Integer idPatient, LocalDate date) {
-        this.idPatient = idPatient;
+    public RequeteCAPSearchConsultations(Integer idDoctor, LocalDate date) {
+        this.idDoctor = idDoctor;
         this.date = date;
     }
 
-    public Integer getIdPatient() { return idPatient; }
+    public Integer getIdDoctor() { return idDoctor; }
     public LocalDate getDate() { return date; }
 
     @Override
     public String toString() {
-        return "RequeteCAPSearchConsultations{idPatient=" + idPatient +
+        return "RequeteCAPSearchConsultations{idPatient=" + idDoctor +
                 ", date=" + date + "}";
     }
 }
