@@ -1,9 +1,13 @@
 package HEPL.medecinJava.Protocol;
 
-public class ReponseCAPAddPatient extends ReponseCAP {
+import java.io.Serializable;
 
-    private final int idPatient;
+public class ReponseCAPAddPatient extends ReponseCAP implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final boolean ok;
+    private final int idPatient;
 
     public ReponseCAPAddPatient(boolean ok, int idPatient, String message) {
         super(message);
@@ -11,8 +15,13 @@ public class ReponseCAPAddPatient extends ReponseCAP {
         this.idPatient = idPatient;
     }
 
-    public int getIdPatient() { return idPatient; }
-    public boolean isOk() { return ok; }
+    public boolean isOk() {
+        return ok;
+    }
+
+    public int getIdPatient() {
+        return idPatient;
+    }
 
     @Override
     public String toString() {

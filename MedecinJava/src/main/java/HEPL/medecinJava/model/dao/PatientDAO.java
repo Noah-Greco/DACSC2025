@@ -66,46 +66,47 @@ public class PatientDAO {
     // ---------------------- CREATE + UPDATE : save() ----------------------
 
     public void save(Patient p) {
-        try {
-            if (p == null) return;
+        if (p == null) return;
 
+        try {
+            Integer id = p.getId(); // peut être null pour un nouveau patient
             String sql;
 
-            if (p.getId() > 0) {
-                // UPDATE
+            if (id != null && id > 0) {
+                // ================== UPDATE ==================
                 sql = "UPDATE patients SET first_name = ?, last_name = ?, birth_date = ? " +
                         "WHERE id = ?";
 
-                PreparedStatement pStmt = connection.prepareStatement(sql);
-                setCommonParameters(pStmt, p);
-                pStmt.setInt(4, p.getId());
-
-                pStmt.executeUpdate();
-                pStmt.close();
+                try (PreparedStatement pStmt = connection.prepareStatement(sql)) {
+                    setCommonParameters(pStmt, p);
+                    pStmt.setInt(4, id);
+                    pStmt.executeUpdate();
+                }
 
             } else {
-                // INSERT
+                // ================== INSERT ==================
                 sql = "INSERT INTO patients (first_name, last_name, birth_date) " +
                         "VALUES (?, ?, ?)";
 
-                PreparedStatement pStmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                try (PreparedStatement pStmt =
+                             connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-                setCommonParameters(pStmt, p);
-                pStmt.executeUpdate();
+                    setCommonParameters(pStmt, p);
+                    pStmt.executeUpdate();
 
-                ResultSet rs = pStmt.getGeneratedKeys();
-                if (rs.next()) {
-                    p.setId(rs.getInt(1));
+                    try (ResultSet rs = pStmt.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            p.setId(rs.getInt(1));    // récupère l’ID auto-incrémenté
+                        }
+                    }
                 }
-
-                rs.close();
-                pStmt.close();
             }
 
         } catch (SQLException ex) {
             Logger.getLogger(PatientDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     // paramètres communs INSERT / UPDATE
     private void setCommonParameters(PreparedStatement pStmt, Patient p) throws SQLException {
@@ -210,18 +211,19 @@ public class PatientDAO {
      */
     public int addPatient(String lastName, String firstName) throws SQLException {
         Patient p = new Patient();
-        p.setFirstName(firstName);
         p.setLastName(lastName);
-        p.setBirthDate(null); // ou une date par défaut si tu veux
+        p.setFirstName(firstName);
+        // p.setBirthDate(...); // si tu veux le gérer plus tard
 
-        save(p); // save() fait l'INSERT et récupère l'id
+        save(p);  // fait l'INSERT et met l'id dans p
 
-        if (p.getId() == null || p.getId() <= 0) {
-            throw new SQLException("Insertion patient échouée, id non généré");
+        Integer id = p.getId();
+        if (id == null) {
+            throw new SQLException("Insertion patient : ID généré null");
         }
-
-        return p.getId();
+        return id;
     }
+
 
 
 }

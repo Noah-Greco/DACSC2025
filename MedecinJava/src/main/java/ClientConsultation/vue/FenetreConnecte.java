@@ -4,6 +4,7 @@ import ClientConsultation.protocole.ServiceCAPClient;
 import HEPL.medecinJava.model.entity.Consultation;
 import HEPL.medecinJava.model.viewmodel.ConsultationSearchVM;
 
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -17,6 +18,7 @@ public class FenetreConnecte extends JFrame {
     private DefaultTableModel modelConsultations;
 
     private final ServiceCAPClient serviceCAP = new ServiceCAPClient();
+    private List<Consultation> consultations;
 
     public FenetreConnecte(int idMedecin) {
         this.idMedecin = idMedecin;
@@ -64,24 +66,80 @@ public class FenetreConnecte extends JFrame {
         setContentPane(panel);
 
         btnModifConsultation.addActionListener(e -> {
-            DialogModifierConsultation modifierConsultation =
-                    new DialogModifierConsultation(this);
-            modifierConsultation.setVisible(true);
-            // après modif : chargerConsultations();
+            int row = tableConsultations.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Sélectionne une consultation à modifier.",
+                        "Information",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            if (consultations == null || row >= consultations.size()) {
+                JOptionPane.showMessageDialog(this,
+                        "Erreur interne : liste de consultations incohérente.",
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Consultation c = consultations.get(row);
+
+            // INTERDICTION : si la consultation a déjà un patient
+            if (c.getPatient_id() != null) {
+                JOptionPane.showMessageDialog(this,
+                        "Impossible de modifier cette consultation :\n" +
+                                "elle est déjà réservée par le patient " + c.getPatient_id() + ".",
+                        "Modification interdite",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            DialogModifierConsultation dialog =
+                    new DialogModifierConsultation(this, c);
+            dialog.setVisible(true);
+
+            if (dialog.isModified()) {
+                chargerConsultations();
+            }
         });
+
+
 
         btnAjoutPatient.addActionListener(e -> {
             DialogNouveauPatient nouveauPatient = new DialogNouveauPatient(this);
             nouveauPatient.setVisible(true);
-            // après ajout : recharger si besoin
         });
 
         btnAjoutConsultation.addActionListener(e -> {
-            DialogNouvelleConsultation nouvelleConsultation =
-                    new DialogNouvelleConsultation(this);
-            nouvelleConsultation.setVisible(true);
-            // après ajout : recharger si besoin
+            DialogNouvelleConsultation dlg =
+                    new DialogNouvelleConsultation(this, idMedecin);
+            dlg.setVisible(true);
+
+            if (dlg.isValidated()) {
+                ConsultationSearchVM vm = dlg.getConsultationVM();
+
+                try {
+                    serviceCAP.ajouterConsultation(vm);
+
+                    chargerConsultations(); // recharge la liste après insertion
+
+                    JOptionPane.showMessageDialog(this,
+                            "Consultation ajoutée.",
+                            "Succès",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "Erreur lors de l'ajout : " + ex.getMessage(),
+                            "Erreur",
+                            JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
         });
+
+
 
         btnSuppConsultation.addActionListener(e -> supprimerConsultation());
 
@@ -97,33 +155,6 @@ public class FenetreConnecte extends JFrame {
             }
         });
     }
-
-    private void chargerConsultations() {
-        modelConsultations.setRowCount(0);
-
-        try {
-            List<Consultation> liste =
-                    serviceCAP.getConsultationsMedecin(idMedecin);
-
-            for (Consultation c : liste) {
-                Object[] row = {
-                        c.getId(),
-                        c.getDateConsultation(),
-                        c.getTimeConsultation(),
-                        c.getPatient_id(),
-                        c.getReason()
-                };
-                modelConsultations.addRow(row);
-            }
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Erreur lors du chargement des consultations : " + ex.getMessage(),
-                    "Erreur",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
 
     private void supprimerConsultation() {
         int row = tableConsultations.getSelectedRow();
@@ -165,4 +196,33 @@ public class FenetreConnecte extends JFrame {
 
         chargerConsultations();
     }
+
+    private void chargerConsultations() {
+        modelConsultations.setRowCount(0);
+
+        try {
+            List<Consultation> liste =
+                    serviceCAP.getConsultationsMedecin(idMedecin);
+
+            this.consultations = liste; // mémoriser pour la modif
+
+            for (Consultation c : liste) {
+                Object[] row = {
+                        c.getId(),
+                        c.getDateConsultation(),
+                        c.getTimeConsultation(),
+                        c.getPatient_id(),
+                        c.getReason()
+                };
+                modelConsultations.addRow(row);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erreur lors du chargement des consultations : " + ex.getMessage(),
+                    "Erreur",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 }

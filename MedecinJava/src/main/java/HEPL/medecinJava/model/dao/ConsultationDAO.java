@@ -224,9 +224,6 @@ public class ConsultationDAO {
                 if (searchVM.getDateConsultation() != null) {
                     sql.append(" AND c.date >= ?");
                 }
-                if (searchVM.getDateConsultationTo() != null) {
-                    sql.append(" AND c.date <= ?");
-                }
 
                 // FILTRE HEURE : on CAST pour comparer en TIME et pas en VARCHAR
                 if (searchVM.getTimeConsultation() != null) {
@@ -261,9 +258,6 @@ public class ConsultationDAO {
 
                 if (searchVM.getDateConsultation() != null) {
                     stmt.setDate(index++, Date.valueOf(searchVM.getDateConsultation()));
-                }
-                if (searchVM.getDateConsultationTo() != null) {
-                    stmt.setDate(index++, Date.valueOf(searchVM.getDateConsultationTo()));
                 }
 
                 if (searchVM.getTimeConsultation() != null) {
@@ -377,7 +371,6 @@ public class ConsultationDAO {
         ConsultationSearchVM vm = new ConsultationSearchVM();
         vm.setPatientId(patientId);
         vm.setDateConsultation(date);
-        vm.setDateConsultationTo(date); // même jour
 
         return load(vm);
     }

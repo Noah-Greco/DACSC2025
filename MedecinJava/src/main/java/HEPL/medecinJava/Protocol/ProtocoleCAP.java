@@ -92,35 +92,14 @@ public class ProtocoleCAP implements Protocole {
     // ------------ ADD_CONSULTATION ------------
     private ReponseCAPAddConsultation traiteAddConsultation(RequeteCAPAddConsultation r) {
         try {
-            // Il manque dans notre requête un id du médecin.
-            // Normalement, la BD doit savoir pour quel médecin on crée
-            // les consultations. Donc tu dois AJOUTER un champ idMedecin
-            // dans RequeteCAPAddConsultation et le récupérer ici.
-            //
-            // int idMedecin = r.getIdMedecin(); // TODO après modif de la classe requête
+            int idMedecin = r.getIdMedecin();
 
-            int idMedecin = 0; // TODO: À corriger dès que tu ajoutes l'id dans la requête
-
-            // ====================================================
-            // ICI : appel à ConsultationDAO pour créer les consultations.
-            // Exemple POSSIBLE (À ADAPTER) :
-            //
-            // boolean ok = consultationDAO.createConsultations(
-            //                  idMedecin,
-            //                  r.getDate(),
-            //                  r.getHeure(),
-            //                  r.getDureeMinutes(),
-            //                  r.getNbConsultationsConsecutives());
-            // ====================================================
-
-            // TODO: remplace par la vraie méthode de ton DAO
             boolean ok = consultationDAO.addConsultations(
-                    idMedecin,
-                    r.getDate(),
-                    r.getHeure(),
-                    r.getDureeMinutes(),
-                    r.getNbConsultationsConsecutives()
-            );
+                              idMedecin,
+                              r.getDate(),
+                              r.getHeure(),
+                              r.getDureeMinutes(),
+                              r.getNbConsultationsConsecutives());
 
             if (!ok) {
                 return new ReponseCAPAddConsultation(false,
@@ -138,23 +117,21 @@ public class ProtocoleCAP implements Protocole {
     // ------------ ADD_PATIENT ------------
     private ReponseCAPAddPatient traiteAddPatient(RequeteCAPAddPatient r) {
         try {
-            // ====================================================
-            // ICI : appel à PatientDAO pour ajouter un patient.
-            // Exemple POSSIBLE :
-            //    int id = patientDAO.insert(r.getNom(), r.getPrenom());
-            // ====================================================
-
-            // TODO: remplace par la bonne méthode
             int id = patientDAO.addPatient(r.getNom(), r.getPrenom());
-
             return new ReponseCAPAddPatient(true, id, "Patient ajouté");
         }
         catch (SQLException e) {
             e.printStackTrace();
-            return new ReponseCAPAddPatient(false, -1,
-                    "Erreur BD lors de l'ajout du patient : " + e.getMessage());
+            String msg = "Erreur BD lors de l'ajout du patient : " + e.getMessage();
+            return new ReponseCAPAddPatient(false, -1, msg);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            String msg = "Erreur serveur (addPatient) : " + e.getClass().getSimpleName();
+            return new ReponseCAPAddPatient(false, -1, msg);
         }
     }
+
 
     // ------------ UPDATE_CONSULTATION ------------
     private ReponseCAPUpdateConsultation traiteUpdateConsultation(RequeteCAPUpdateConsultation r) {
@@ -203,7 +180,6 @@ public class ProtocoleCAP implements Protocole {
             }
             if (r.getDate() != null) {
                 vm.setDateConsultation(r.getDate());
-                vm.setDateConsultationTo(r.getDate()); // même jour, si c'est la logique voulue
             }
 
             // 2. Lancer la recherche via le DAO
@@ -231,7 +207,6 @@ public class ProtocoleCAP implements Protocole {
     // ------------ DELETE_CONSULTATION ------------
     private ReponseCAPDeleteConsultation traiteDeleteConsultation(RequeteCAPDeleteConsultation r) {
         try {
-            // TODO: remplace par la vraie méthode
             boolean ok = consultationDAO.deleteConsultation(r.getIdConsultation());
 
             if (!ok)
@@ -248,7 +223,6 @@ public class ProtocoleCAP implements Protocole {
 
     // ------------ LOGOUT ------------
     private ReponseCAPLogout traiteLogout(RequeteCAPLogout r) {
-        // Pour un serveur de requêtes, LOGOUT sera souvent juste informatif.
         return new ReponseCAPLogout("Logout OK pour " + r.getLogin());
     }
 }

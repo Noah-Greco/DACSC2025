@@ -8,7 +8,6 @@ public class ConsultationSearchVM {
     private Integer doctor_id;
     private Integer patient_id;
     private LocalDate dateConsultation;
-    private LocalDate dateConsultationTo;
     private LocalTime timeConsultation;
     private LocalTime timeConsultationTo;
     private String reason;
@@ -54,16 +53,6 @@ public class ConsultationSearchVM {
     public void setDateConsultation(LocalDate dateConsultation)
     {
         this.dateConsultation = dateConsultation;
-    }
-
-    public LocalDate getDateConsultationTo()
-    {
-        return dateConsultationTo;
-    }
-
-    public void setDateConsultationTo(LocalDate dateConsultationTo)
-    {
-        this.dateConsultationTo = dateConsultationTo;
     }
 
     public LocalTime getTimeConsultation()
