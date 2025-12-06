@@ -29,10 +29,10 @@ public class ThreadServeurPool extends Thread {
         try (ServerSocket ssocket = new ServerSocket(port)) {
             logger.Trace("Serveur Consultation (pool) en écoute sur le port " + port);
 
-            // 1. Création du groupe de threads clients
+            // Création du groupe de threads clients
             ThreadGroup groupeClients = new ThreadGroup("POOL_CLIENTS");
 
-            // 2. Création des threads du pool
+            //Création des threads du pool
             for (int i = 0; i < taillePool; i++) {
                 try {
                     ThreadClientPool th =
@@ -43,7 +43,7 @@ public class ThreadServeurPool extends Thread {
                 }
             }
 
-            // 3. Boucle d'acceptation : serveur de requêtes
+            //Boucle d'acceptation : serveur de requêtes
             while (true) {
                 logger.Trace("Attente d'une connexion...");
                 Socket csocket = ssocket.accept();

@@ -40,8 +40,6 @@ public class DoctorDAO {
         return null;
     }
 
-    // ---------------------- READ : charger tous les docteurs ----------------------
-
     public ArrayList<Doctor> load() {
         try {
             String sql = "SELECT id, specialty_id, last_name, first_name FROM doctors ORDER BY last_name";
@@ -62,8 +60,6 @@ public class DoctorDAO {
             return doctors;
         }
     }
-
-    // ---------------------- CREATE + UPDATE : save() ----------------------
 
     public void save(Doctor d) {
         try {
@@ -112,8 +108,6 @@ public class DoctorDAO {
         pStmt.setString(3, d.getFirstName());
     }
 
-    // ---------------------- DELETE ----------------------
-
     public void delete(Doctor d) {
         if (d != null && d.getId() > 0) {
             delete(d.getId());
@@ -133,8 +127,6 @@ public class DoctorDAO {
             Logger.getLogger(DoctorDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    // ---------------------- mapRow() : ResultSet → Doctor ----------------------
 
     private Doctor mapRow(ResultSet rs) throws SQLException {
         return new Doctor(
@@ -208,7 +200,7 @@ public class DoctorDAO {
 
         Doctor found = null;
         if (rs.next()) {
-            found = mapRow(rs); // mapRow existe déjà et ne lit pas le password, ce n'est pas grave
+            found = mapRow(rs);
         }
 
         rs.close();

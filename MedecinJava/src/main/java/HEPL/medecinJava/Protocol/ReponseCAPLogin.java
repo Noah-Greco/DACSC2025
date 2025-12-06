@@ -3,8 +3,6 @@ package HEPL.medecinJava.Protocol;
 public class ReponseCAPLogin extends ReponseCAP {
 
     private final boolean ok;
-    // éventuellement: id du médecin, nom complet, etc.
-
     public ReponseCAPLogin(boolean ok, String message) {
         super(message);
         this.ok = ok;

@@ -8,7 +8,7 @@ import java.awt.*;
 public class DialogLogin extends JDialog {
 
     private JPanel panel = new JPanel();
-    private JTextField txtId;         // ID médecin
+    private JTextField txtId;
     private JPasswordField txtPassword;
     private JButton btnValider;
     private JButton btnAnnuler;
@@ -19,7 +19,7 @@ public class DialogLogin extends JDialog {
     private final ServiceCAPClient serviceCAP = new ServiceCAPClient();
 
     public DialogLogin(Frame parent) {
-        super(parent, "Connexion médecin", true); // modal
+        super(parent, "Connexion médecin", true);
 
         setSize(400, 200);
         setLocationRelativeTo(parent);

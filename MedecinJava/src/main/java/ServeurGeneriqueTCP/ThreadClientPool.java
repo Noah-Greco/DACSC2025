@@ -19,7 +19,7 @@ public class ThreadClientPool extends ThreadClient {
     public void run() {
         while (true) {
             try {
-                // 1. Récupérer une socket dans la file (bloquant)
+                //Récupérer une socket dans la file (bloquant)
                 csocket = fileAttente.retirerSocket();
                 logger.Trace("Socket prise dans la file : " + csocket.getRemoteSocketAddress());
 
@@ -27,11 +27,11 @@ public class ThreadClientPool extends ThreadClient {
                 ObjectInputStream ois = null;
 
                 try {
-                    // 2. Création des flux objet
+                    //Création des flux objet
                     ois = new ObjectInputStream(csocket.getInputStream());
                     oos = new ObjectOutputStream(csocket.getOutputStream());
 
-                    // 3. SERVEUR DE REQUÊTES : UNE SEULE REQUÊTE PAR CONNEXION
+                    // serveur de requête donc une seule requête par connexion
                     Requete requete = (Requete) ois.readObject();
                     Reponse reponse = protocole.TraiteRequete(requete, csocket);
                     oos.writeObject(reponse);
@@ -61,7 +61,7 @@ public class ThreadClientPool extends ThreadClient {
             }
             catch (InterruptedException e) {
                 logger.Trace("ThreadClientPool interrompu, arrêt du thread.");
-                return; // on sort proprement de la boucle -> fin du thread
+                return;
             }
         }
     }

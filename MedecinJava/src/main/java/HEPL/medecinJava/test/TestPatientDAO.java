@@ -15,9 +15,7 @@ public class TestPatientDAO {
 
         PatientDAO dao = new PatientDAO();
 
-        // -----------------------------
         // TEST 1 : CHARGER TOUS LES PATIENTS
-        // -----------------------------
         System.out.println("\nTEST 1 : load()");
 
         ArrayList<Patient> all = dao.load();
@@ -26,9 +24,7 @@ public class TestPatientDAO {
             System.out.println(p);
         }
 
-        // -----------------------------
         // TEST 2 : RECHERCHE PAR NOM (LIKE)
-        // -----------------------------
         System.out.println("\nTEST 2 : load(PatientSearchVM)");
 
         PatientSearchVM vm = new PatientSearchVM();
@@ -40,18 +36,14 @@ public class TestPatientDAO {
             System.out.println(p);
         }
 
-        // -----------------------------
         // TEST 3 : INSERT
-        // -----------------------------
         System.out.println("\nTEST 3 : save() (INSERT)");
 
         Patient newP = new Patient("TestFirst", "TestLast", LocalDate.of(1990, 1, 1));
         dao.save(newP); // INSERT
         System.out.println("NOUVEAU patient ID = " + newP.getId());
 
-        // -----------------------------
         // TEST 4 : UPDATE
-        // -----------------------------
         System.out.println("\nTEST 4 : save() (UPDATE)");
 
         newP.setLastName("TestLastUpdated");
@@ -66,9 +58,7 @@ public class TestPatientDAO {
             System.out.println(p);
         }
 
-        // -----------------------------
         // TEST 5 : DELETE
-        // -----------------------------
         System.out.println("\nTEST 5 : delete()");
 
         dao.delete(newP);

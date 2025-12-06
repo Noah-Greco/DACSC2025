@@ -18,13 +18,13 @@ public class DialogAfficheConnexion extends JDialog {
 
     private void initComponents(String[] clients) {
 
-        // 1) Colonnes
+        // Colonnes
         String[] colonnes = { "Adresse IP", "Nom", "Prénom", "ID" };
 
-        // 2) Tableau de données (à générer depuis clients)
+        // Tableau de données (à générer depuis clients)
         String[][] data = convertirClients(clients);
 
-        // 3) ICI → création du modèle
+        // ICI → création du modèle
         model = new DefaultTableModel(data, colonnes) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -32,13 +32,13 @@ public class DialogAfficheConnexion extends JDialog {
             }
         };
 
-        // 4) La JTable
+        // La JTable
         table = new JTable(model);
 
-        // 5) Ajout dans un JScrollPane
+        // Ajout dans un JScrollPane
         JScrollPane scrollPane = new JScrollPane(table);
 
-        // 6) Layout
+        // Layout
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(scrollPane, BorderLayout.CENTER);
     }

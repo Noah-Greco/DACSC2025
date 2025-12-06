@@ -39,8 +39,6 @@ public class PatientDAO {
         return null;
     }
 
-    // ---------------------- READ : charger tous les patients ----------------------
-
     public ArrayList<Patient> load() {
         try {
             String sql = "SELECT id, first_name, last_name, birth_date " +
@@ -63,8 +61,6 @@ public class PatientDAO {
         }
     }
 
-    // ---------------------- CREATE + UPDATE : save() ----------------------
-
     public void save(Patient p) {
         if (p == null) return;
 
@@ -73,7 +69,6 @@ public class PatientDAO {
             String sql;
 
             if (id != null && id > 0) {
-                // ================== UPDATE ==================
                 sql = "UPDATE patients SET first_name = ?, last_name = ?, birth_date = ? " +
                         "WHERE id = ?";
 
@@ -84,7 +79,6 @@ public class PatientDAO {
                 }
 
             } else {
-                // ================== INSERT ==================
                 sql = "INSERT INTO patients (first_name, last_name, birth_date) " +
                         "VALUES (?, ?, ?)";
 
@@ -108,7 +102,6 @@ public class PatientDAO {
     }
 
 
-    // paramètres communs INSERT / UPDATE
     private void setCommonParameters(PreparedStatement pStmt, Patient p) throws SQLException {
         pStmt.setString(1, p.getFirstName());
         pStmt.setString(2, p.getLastName());
@@ -119,8 +112,6 @@ public class PatientDAO {
             pStmt.setDate(3, null);
         }
     }
-
-    // ---------------------- DELETE ----------------------
 
     public void delete(Patient p) {
         if (p != null && p.getId() > 0) {
@@ -141,8 +132,6 @@ public class PatientDAO {
             Logger.getLogger(PatientDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    // ---------------------- mapping ResultSet -> Patient ----------------------
 
     private Patient mapRow(ResultSet rs) throws SQLException {
         Date sqlDate = rs.getDate("birth_date");
@@ -205,17 +194,12 @@ public class PatientDAO {
         }
     }
 
-    /**
-     * Ajoute un patient avec nom / prénom et renvoie son id.
-     * birth_date est laissée à null.
-     */
     public int addPatient(String lastName, String firstName) throws SQLException {
         Patient p = new Patient();
         p.setLastName(lastName);
         p.setFirstName(firstName);
-        // p.setBirthDate(...); // si tu veux le gérer plus tard
 
-        save(p);  // fait l'INSERT et met l'id dans p
+        save(p); //fais l'insert et ça met l'id dans p
 
         Integer id = p.getId();
         if (id == null) {

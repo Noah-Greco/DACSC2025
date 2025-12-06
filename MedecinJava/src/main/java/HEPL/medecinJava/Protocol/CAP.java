@@ -6,19 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * Consultation Administration Protocol (CAP)
- * Un fichier, toutes les commandes du protocole.
- *
- * Utilisation typique :
- *   CAP cap = new CAP("127.0.0.1", 6000); // PORT_CONSULTATION
- *   boolean ok = cap.login("doc1", "pwd");
- *   ...
- *   cap.close();
- */
 public class CAP implements Closeable {
 
-    // ======== Classes internes : requête / réponse ========
+    //Classes internes : requête / réponse
 
     private static class CAPRequest implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -73,7 +63,7 @@ public class CAP implements Closeable {
         }
     }
 
-    // ======== Partie "client protocole" ========
+    //Partie "client protocole"
 
     private final String host;
     private final int port;
@@ -81,9 +71,7 @@ public class CAP implements Closeable {
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
 
-    /**
-     * Ouvre la connexion vers le serveur de consultations.
-     */
+    //Ouvre la connexion vers le serveur de consultations.
     public CAP(String host, int port) throws IOException {
         this.host = host;
         this.port = port;
@@ -100,9 +88,7 @@ public class CAP implements Closeable {
         this.ois = new ObjectInputStream(socket.getInputStream());
     }
 
-    /**
-     * Envoie une requête CAP et reçoit la réponse.
-     */
+    //Envoie une requête CAP et reçoit la réponse.
     private synchronized CAPResponse sendRequest(CAPRequest req)
             throws IOException, ClassNotFoundException {
 
@@ -145,12 +131,6 @@ public class CAP implements Closeable {
     }
 
     // ---------- ADD_CONSULTATION ----------
-    /**
-     * date, heure au format String pour rester simple.
-     * Exemple :
-     *   date  = "2025-01-15"
-     *   heure = "09:30"
-     */
     public boolean addConsultation(String date,
                                    String heure,
                                    int dureeMinutes,
@@ -170,9 +150,6 @@ public class CAP implements Closeable {
     }
 
     // ---------- ADD_PATIENT ----------
-    /**
-     * Retourne l'id attribué au patient (ou -1 en cas d'erreur côté protocole).
-     */
     public int addPatient(String nom, String prenom) throws IOException {
         CAPRequest req = new CAPRequest("ADD_PATIENT");
         req.put("nom", nom);
@@ -200,15 +177,6 @@ public class CAP implements Closeable {
     }
 
     // ---------- UPDATE_CONSULTATION ----------
-    /**
-     * Met à jour une consultation :
-     *  - changement date/heure
-     *  - et/ou attribution patient + raison
-     *
-     * Si tu veux rendre certains paramètres optionnels :
-     *   tu peux passer null pour ceux que tu n’utilises pas
-     *   et côté serveur tu gères.
-     */
     public boolean updateConsultation(int idConsultation,
                                       String nouvelleDate,
                                       String nouvelleHeure,
@@ -230,13 +198,6 @@ public class CAP implements Closeable {
     }
 
     // ---------- SEARCH_CONSULTATIONS ----------
-    /**
-     * Retourne une liste d'objets (à typer selon tes classes).
-     * Ici je pars sur List<Object> pour ne pas dépendre de tes entités.
-     *
-     * Plus tard, quand ton serveur renverra par exemple List<ConsultationVM>,
-     * tu pourras caster en conséquence.
-     */
     @SuppressWarnings("unchecked")
     public List<Object> searchConsultations(Integer patientId, String date) throws IOException {
         CAPRequest req = new CAPRequest("SEARCH_CONSULTATIONS");

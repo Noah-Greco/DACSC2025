@@ -21,8 +21,8 @@ import java.time.LocalTime;
 
 public class ServiceCAPClient {
 
-    private final String host = "127.0.0.1"; // à adapter si besoin
-    private final int port = 50000;          // à adapter si besoin
+    private final String host = "127.0.0.1"; // à changer
+    private final int port = 50000;
 
     private Reponse envoyer(Requete req) throws Exception {
         try (Socket socket = new Socket(host, port);
@@ -96,7 +96,7 @@ public class ServiceCAPClient {
         ReponseCAPAddConsultation rep =
                 (ReponseCAPAddConsultation) envoyer(req);
 
-        if (!rep.isOk()) {  // adapte si ton getter s’appelle différemment
+        if (!rep.isOk()) {
             throw new Exception(rep.getMessage());
         }
     }
@@ -119,7 +119,7 @@ public class ServiceCAPClient {
         ReponseCAPUpdateConsultation rep =
                 (ReponseCAPUpdateConsultation) envoyer(req);
 
-        if (!rep.isOk()) {  // adapte le getter si nécessaire
+        if (!rep.isOk()) {
             throw new Exception(rep.getMessage());
         }
     }

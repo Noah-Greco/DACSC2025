@@ -82,15 +82,14 @@ public class DialogModifierConsultation extends JDialog {
             LocalDate nouvelleDate = LocalDate.parse(dateStr);
             LocalTime nouvelleHeure = LocalTime.parse(heureStr);
 
-            // Ici, la consultation n'a PAS de patient (on l'a filtré dans FenetreConnecte)
-            Integer idPatient = consultation.getPatient_id();  // peut rester null
-            String raison = consultation.getReason();          // peut rester null
+            Integer idPatient = consultation.getPatient_id();
+            String raison = consultation.getReason();
 
             serviceCAP.modifierConsultation(
                     consultation.getId(),
                     nouvelleDate,
                     nouvelleHeure,
-                    idPatient,   // IMPORTANT : type Integer, peut être null
+                    idPatient,
                     raison
             );
 

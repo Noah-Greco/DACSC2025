@@ -136,19 +136,6 @@ public class ProtocoleCAP implements Protocole {
     // ------------ UPDATE_CONSULTATION ------------
     private ReponseCAPUpdateConsultation traiteUpdateConsultation(RequeteCAPUpdateConsultation r) {
         try {
-            // ====================================================
-            // ICI : appel à ConsultationDAO pour mettre à jour la consultation.
-            // Exemple POSSIBLE :
-            //
-            // boolean ok = consultationDAO.updateConsultation(
-            //                  r.getIdConsultation(),
-            //                  r.getNouvelleDate(),
-            //                  r.getNouvelleHeure(),
-            //                  r.getIdPatient(),
-            //                  r.getRaison());
-            // ====================================================
-
-            // TODO: remplace par la vraie méthode
             boolean ok = consultationDAO.updateConsultation(
                     r.getIdConsultation(),
                     r.getNouvelleDate(),
@@ -172,7 +159,7 @@ public class ProtocoleCAP implements Protocole {
     // ------------ SEARCH_CONSULTATIONS ------------
     private ReponseCAPSearchConsultations traiteSearchConsultations(RequeteCAPSearchConsultations r) {
         try {
-            // 1. Construire le SearchVM à partir de la requête CAP
+            //Construire le SearchVM à partir de la requête CAP
             ConsultationSearchVM vm = new ConsultationSearchVM();
 
             if (r.getIdDoctor() != null) {
@@ -182,15 +169,15 @@ public class ProtocoleCAP implements Protocole {
                 vm.setDateConsultation(r.getDate());
             }
 
-            // 2. Lancer la recherche via le DAO
+            //Lancer la recherche via le DAO
             // load(vm) renvoie déjà un ArrayList<Consultation>
             var consultations = consultationDAO.load(vm);
 
-            // 3. Message
+            //Message
             String msg = "Nombre de consultations trouvées : " +
                     (consultations == null ? 0 : consultations.size());
 
-            // 4. Réponse CAP (on renvoie directement les entités Consultation)
+            //Réponse CAP (on renvoie directement les entités Consultation)
             return new ReponseCAPSearchConsultations(consultations, msg);
         }
         catch (Exception e) {

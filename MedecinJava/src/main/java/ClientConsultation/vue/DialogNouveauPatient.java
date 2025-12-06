@@ -18,7 +18,7 @@ public class DialogNouveauPatient extends JDialog {
     private int idPatientCree;
 
     public DialogNouveauPatient(Frame parent) {
-        super(parent, "Nouveau patient", true); // modal
+        super(parent, "Nouveau patient", true);
 
         setSize(400, 200);
         setLocationRelativeTo(parent);

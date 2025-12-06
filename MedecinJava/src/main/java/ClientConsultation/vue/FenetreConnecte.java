@@ -51,7 +51,6 @@ public class FenetreConnecte extends JFrame {
 
         panel.add(panelBoutons, BorderLayout.NORTH);
 
-        // 5 colonnes cohérentes avec les données
         String[] colonnes = {"ID", "Date", "Heure", "Patient", "Motif"};
         modelConsultations = new DefaultTableModel(colonnes, 0) {
             @Override
@@ -85,7 +84,7 @@ public class FenetreConnecte extends JFrame {
 
             Consultation c = consultations.get(row);
 
-            // INTERDICTION : si la consultation a déjà un patient
+            // pas possible si la consultation a déjà un patient
             if (c.getPatient_id() != null) {
                 JOptionPane.showMessageDialog(this,
                         "Impossible de modifier cette consultation :\n" +
@@ -184,13 +183,13 @@ public class FenetreConnecte extends JFrame {
             }
         }
         catch (Exception ex) {
-            // 1. afficher l'erreur à l'utilisateur
+            //afficher l'erreur à l'utilisateur
             JOptionPane.showMessageDialog(this,
                     "Erreur lors de la suppression : " + ex.getMessage(),
                     "Erreur",
                     JOptionPane.ERROR_MESSAGE);
 
-            // 2. afficher dans la console pour le dev
+            // afficher dans la console pour le dev
             ex.printStackTrace();
         }
 

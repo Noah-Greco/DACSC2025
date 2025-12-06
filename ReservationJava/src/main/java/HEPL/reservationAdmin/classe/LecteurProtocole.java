@@ -7,15 +7,6 @@ public class LecteurProtocole {
 
     private static final String DELIM = "##//##";
 
-    /**
-     * Lit un message en provenance du serveur C.
-     * Le message est terminé par le délimiteur ##//##.
-     * Aucun \n n'est nécessaire.
-     *
-     * @param is InputStream de la socket.
-     * @return Le message complet SANS le délimiteur, ou null si la socket se ferme.
-     * @throws IOException si une erreur réseau survient.
-     */
     public static String lireMessage(InputStream is) throws IOException {
         StringBuilder sb = new StringBuilder();
         int c;

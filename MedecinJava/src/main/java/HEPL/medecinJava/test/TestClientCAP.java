@@ -1,7 +1,6 @@
 package HEPL.medecinJava.test;
 
 import HEPL.medecinJava.Protocol.RequeteCAPLogin;
-import HEPL.medecinJava.Protocol.RequeteCAPTest;
 import HEPL.medecinJava.config.ConfigConsultation;
 import ServeurGeneriqueTCP.Requete;
 import ServeurGeneriqueTCP.Reponse;
@@ -14,40 +13,29 @@ public class TestClientCAP {
 
     public static void main(String[] args) {
         try {
-            // 1. Lire le port dans le même fichier properties que le serveur
+            //Lire le port dans le même fichier properties que le serveur
             ConfigConsultation config = new ConfigConsultation("consultation.properties");
             int port = config.getPortConsultation();
 
-            // 2. Connexion au serveur (localhost, même port)
+            //Connexion au serveur (localhost, même port)
             try (Socket socket = new Socket("127.0.0.1", port)) {
                 System.out.println("Connecté au serveur Consultation sur le port " + port);
 
-                // IMPORTANT :
-                // Côté client : ObjectOutputStream AVANT ObjectInputStream
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream  ois = new ObjectInputStream(socket.getInputStream());
 
-                // 3. Construire une requête CAP
-                // ====================================================
-                // ICI TU DOIS METTRE UNE DE TES VRAIES REQUETES CAP.
-                // Exemple fictif (à adapter à tes classes réelles) :
-                //
-                // Requete requete = new RequeteCAP_GetAllConsultations();
-                //
-                // Remplace la ligne suivante par ta requête concrète.
                 Requete requete = new RequeteCAPLogin(1, "1234");
-                // ====================================================
 
                 if (requete == null) {
                     throw new IllegalStateException("Tu dois instancier une vraie RequeteCAP ici.");
                 }
 
-                // 4. Envoyer la requête
+                //Envoyer la requête
                 oos.writeObject(requete);
                 oos.flush();
                 System.out.println("Requête envoyée : " + requete.getClass().getSimpleName());
 
-                // 5. Recevoir la réponse
+                //Recevoir la réponse
                 Object obj = ois.readObject();
                 if (obj instanceof Reponse reponse) {
                     System.out.println("Réponse reçue : " + reponse.getClass().getSimpleName());

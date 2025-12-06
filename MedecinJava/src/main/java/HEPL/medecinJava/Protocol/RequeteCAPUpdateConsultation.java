@@ -8,8 +8,8 @@ public class RequeteCAPUpdateConsultation extends RequeteCAP {
     private final int idConsultation;
     private final LocalDate nouvelleDate;
     private final LocalTime nouvelleHeure;
-    private final Integer idPatient;    // peut être null si pas de changement
-    private final String raison;        // peut être null si pas de changement
+    private final Integer idPatient;// peut être null
+    private final String raison;//peut être null
 
     public RequeteCAPUpdateConsultation(int idConsultation,
                                         LocalDate nouvelleDate,

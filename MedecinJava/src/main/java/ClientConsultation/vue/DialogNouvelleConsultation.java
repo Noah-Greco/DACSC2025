@@ -12,9 +12,9 @@ public class DialogNouvelleConsultation extends JDialog {
 
     private JPanel panel = new JPanel();
 
-    private JTextField txtDate;       // yyyy-MM-dd
-    private JTextField txtTimeFrom;   // HH:mm
-    private JTextField txtTimeTo;     // HH:mm
+    private JTextField txtDate;// yyyy-MM-dd
+    private JTextField txtTimeFrom; // HH:mm
+    private JTextField txtTimeTo;// HH:mm
 
     private JButton btnValider;
     private JButton btnAnnuler;
@@ -22,7 +22,7 @@ public class DialogNouvelleConsultation extends JDialog {
     private boolean validated = false;
     private ConsultationSearchVM consultationVM;
 
-    private int idMedecin;  // ID du médecin connecté
+    private int idMedecin;
 
     public DialogNouvelleConsultation(Frame parent, int idMedecin) {
         super(parent, "Nouvelle consultation", true); // modal
@@ -102,7 +102,7 @@ public class DialogNouvelleConsultation extends JDialog {
             }
 
             ConsultationSearchVM vm = new ConsultationSearchVM();
-            vm.setDoctorId(idMedecin);             // DOCTOR ID du médecin connecté
+            vm.setDoctorId(idMedecin);
             vm.setDateConsultation(date);
             vm.setTimeConsultation(timeFrom);
             vm.setTimeConsultationTo(timeTo);

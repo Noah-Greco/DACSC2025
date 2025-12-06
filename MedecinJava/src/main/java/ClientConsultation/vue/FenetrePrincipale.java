@@ -22,7 +22,7 @@ public class FenetrePrincipale extends JFrame {
 
     private void ouvrirDialogLogin() {
         DialogLogin dialogLogin = new DialogLogin(this);
-        dialogLogin.setVisible(true);   // BLOQUANT tant que le dialog n'est pas fermé
+        dialogLogin.setVisible(true);
 
         if (dialogLogin.isAuthenticated()) {
             int idMedecin = dialogLogin.getIdMedecin();

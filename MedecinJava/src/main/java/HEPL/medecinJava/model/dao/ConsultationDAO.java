@@ -362,9 +362,6 @@ public class ConsultationDAO {
         return true;
     }
 
-    /**
-     * Recherche des consultations pour un patient et une date donnée (même jour).
-     */
     public ArrayList<Consultation> searchConsultations(Integer patientId,
                                                        LocalDate date) throws SQLException {
 
@@ -375,9 +372,6 @@ public class ConsultationDAO {
         return load(vm);
     }
 
-    /**
-     * Supprime une consultation par id et indique si elle existait.
-     */
     public boolean deleteConsultation(int id) throws SQLException {
         Consultation c = getById(id);
         if (c == null) {

@@ -42,8 +42,6 @@ public class SpecialtyDAO {
         return null;
     }
 
-    // ---------------------- READ : charger toutes les spécialités ----------------------
-
     public ArrayList<Specialty> load() {
         try {
             String sql = "SELECT id, name FROM specialties ORDER BY name";
@@ -65,8 +63,6 @@ public class SpecialtyDAO {
         }
     }
 
-    // ---------------------- CREATE + UPDATE ----------------------
-
     public void save(Specialty s) {
         try {
             if (s == null) return;
@@ -85,7 +81,6 @@ public class SpecialtyDAO {
                 pStmt.close();
 
             } else {
-                // INSERT
                 sql = "INSERT INTO specialties (name) VALUES (?)";
 
                 PreparedStatement pStmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -107,8 +102,6 @@ public class SpecialtyDAO {
         }
     }
 
-    // ---------------------- DELETE ----------------------
-
     public void delete(Specialty s) {
         if (s != null && s.getId() > 0) {
             delete(s.getId());
@@ -129,8 +122,6 @@ public class SpecialtyDAO {
             Logger.getLogger(SpecialtyDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    // ---------------------- Mapping ResultSet → Specialty ----------------------
 
     private Specialty mapRow(ResultSet rs) throws SQLException {
         return new Specialty(
