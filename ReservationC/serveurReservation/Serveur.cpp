@@ -177,7 +177,7 @@ void* ThreadAdminAcceptor(void*)
     char ip[IP_STR_LEN] = DEFAULT_SERVER_IP;
     while (1)
     {
-        int sAdmin = Accept(sEcouteAdmin, ip);
+        int sAdmin = Accept(sEcouteAdmin, ip); //acpt cnx et passe ip client a sAdmin
         if (sAdmin == -1) { perror("Accept admin"); continue; }
         pthread_t th;
 
@@ -227,7 +227,7 @@ void* ThreadAdminService(void* p)
 
     while (1)
     {
-        int n = Receive(sService, req);
+        int n = Receive(sService, req);//lis les données de sService, les mets dans req et save le nb d'octet 
         printf("[ADMIN] Receive retourne %d octets sur socket %d\n", n, sService);
 
         if (n <= 0) {

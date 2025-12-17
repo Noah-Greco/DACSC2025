@@ -1,4 +1,4 @@
-#include "CBP.hpp"
+S#include "CBP.hpp"
 #include <string.h>
 #include <string>
 #include <stdio.h>
@@ -532,14 +532,14 @@ char * CBP_All_Client()
 {
     pthread_mutex_lock(&mutexClients);
 
-    std::string out;
+    std::string out; //accumule resultat
 
     for (int i = 0; i < nbClients; ++i)
     {
-        if (clients[i].noClient[0] == '\0')
+        if (clients[i].noClient[0] == '\0') //Si noClient vide
             continue;
 
-        if (!out.empty())
+        if (!out.empty()) //si out contient deja client on met #
             out.push_back('#');
 
         out += clients[i].ipClient;
@@ -557,7 +557,7 @@ char * CBP_All_Client()
     if (!res)
         return NULL;
 
-    memcpy(res, out.c_str(), out.size() + 1); // +1 pour le '\0'
+    memcpy(res, out.c_str(), out.size() + 1); // +1 pour le '\0', c_str fait le pont en C et c++ car out est objet c++
     return res;   // peut être "" si aucun client
 }
 

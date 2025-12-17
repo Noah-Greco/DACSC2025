@@ -55,7 +55,7 @@
 #define DB_PASS "PassStudent1_"
 #define DB_NAME "PourStudent"
 
-#define DEFAULT_SERVER_IP "192.168.2.129"
+#define DEFAULT_SERVER_IP "192.168.31.130"
 #define DEFAULT_SERVER_PORT 8080
 
 #define COL_COUNT_CONSULTATIONS 5
