@@ -286,17 +286,6 @@ public class ConsultationDAO {
             return consultations;
         }
     }
-
-    /**
-     * Crée une série de consultations consécutives pour un médecin.
-     *
-     * @param doctorId          id du médecin
-     * @param date              date des consultations
-     * @param startTime         heure de départ
-     * @param durationMinutes   durée d'une consultation en minutes
-     * @param count             nombre de consultations consécutives
-     * @return true si toutes les consultations ont été créées, false si impossible (dépasse 17h00, etc.)
-     */
     public boolean addConsultations(int doctorId,
                                     LocalDate date,
                                     LocalTime startTime,
@@ -329,11 +318,6 @@ public class ConsultationDAO {
         }
         return true;
     }
-
-    /**
-     * Met à jour une consultation existante selon les infos fournies.
-     * Les champs null ne sont pas modifiés.
-     */
     public boolean updateConsultation(int idConsultation,
                                       LocalDate nouvelleDate,
                                       LocalTime nouvelleHeure,

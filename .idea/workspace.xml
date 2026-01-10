@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="714c30d1-cad5-4f74-a8ef-1a43a645500f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API-REST/src/test/java/server/dao/ConsultationDAOTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedecinJava/src/main/java/ClientConsultation/protocole/ServiceCAPClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedecinJava/src/main/java/ClientConsultation/protocole/ServiceCAPClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MedecinJava/src/main/java/HEPL/medecinJava/model/dao/ConsultationDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/MedecinJava/src/main/java/HEPL/medecinJava/model/dao/ConsultationDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RtiPartie3/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/java/server/dao/DoctorDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/java/server/dao/DoctorDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/Compile.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/Compile.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/CreationBD" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/CreationBD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/resources/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/resources/config.properties" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/RtiPartie3" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="383uRuRIwo8tvSCtRBQc6NuxmX2" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.MainClient.executor": "Run",
+    "Application.MainServer.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "show.migrate.to.gradle.popup": "false",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.25557.131" />
+        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-IU-252.25557.131" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="714c30d1-cad5-4f74-a8ef-1a43a645500f" name="Changes" comment="" />
+      <created>1768040571656</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1768040571656</updated>
+      <workItem from="1768040573930" duration="121000" />
+      <workItem from="1768040706357" duration="4153000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
