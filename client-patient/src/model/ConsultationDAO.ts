@@ -9,17 +9,16 @@ export interface Consultation {
 
 export class ConsultationDAO {
     private static API_URL = "http://localhost:8080/api/consultations";
+    async search(filters: { doctor: string | null, specialty: string | null, date?: string | null }): Promise<Consultation[]> {
+        const params = new URLSearchParams()
+        if (filters.doctor) params.set('doctor', filters.doctor)
+        if (filters.specialty) params.set('specialty', filters.specialty)
+        if (filters.date) params.set('date', filters.date)
 
-    // 1. CHERCHER PAR MEDECIN (Pour la réservation)
-    async search(doctorId: number): Promise<Consultation[]> {
-        try {
-            const response = await fetch(`${ConsultationDAO.API_URL}?doctorId=${doctorId}`);
-            if (!response.ok) return [];
-            return await response.json();
-        } catch (err) {
-            console.error(err);
-            return [];
-        }
+        const url = `${ConsultationDAO.API_URL}?${params.toString()}`
+        const response = await fetch(url)
+        if (!response.ok) return []
+        return await response.json()
     }
 
     // 2. CHERCHER PAR PATIENT (Pour "Mes Rendez-vous") <-- NOUVEAU
