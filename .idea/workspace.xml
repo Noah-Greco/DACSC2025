@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="714c30d1-cad5-4f74-a8ef-1a43a645500f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/client-patient/src/components/LoginPanel.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RtiPartie3/src/main/java/client/gui/LoginDialog.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API-REST" beforeDir="false" afterPath="$PROJECT_DIR$/API-REST" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/API-REST/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/API-REST/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/API-REST/src/main/java/api/ConsultationHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/API-REST/src/main/java/api/ConsultationHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/API-REST/src/main/java/api/PatientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/API-REST/src/main/java/api/PatientHandler.java" afterDir="false" />
@@ -16,18 +17,11 @@
       <change beforePath="$PROJECT_DIR$/API-REST/src/main/resources/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/API-REST/src/main/resources/config.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/API-REST/src/test/java/server/dao/ConsultationDAOTest.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/RtiPartie3/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/java/client/gui/RapportMedicalClientUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/java/client/gui/RapportMedicalClientUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/java/server/dao/DoctorDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/java/server/dao/DoctorDAO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/Compile.sh" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/Compile.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/CreationBD" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/resources/BD_Hospital/CreationBD" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RtiPartie3/src/main/resources/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/RtiPartie3/src/main/resources/config.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/main.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/model/ConsultationDAO.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/model/ConsultationDAO.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/model/PatientDAO.ts" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/model/PatientDAO.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/router/index.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/views/ConsultationView.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-patient/src/views/LoginView.vue" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,11 +32,12 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Vue Composition API Component" />
+        <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/API-REST" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/RtiPartie3" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -59,6 +54,7 @@
     "Application.MainClient.executor": "Run",
     "Application.MainServer.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Node.js.main.ts.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "dart.analysis.tool.window.visible": "false",
@@ -95,7 +91,8 @@
       <option name="presentableId" value="Default" />
       <updated>1768040571656</updated>
       <workItem from="1768040573930" duration="121000" />
-      <workItem from="1768040706357" duration="10704000" />
+      <workItem from="1768040706357" duration="10953000" />
+      <workItem from="1768138676133" duration="4341000" />
     </task>
     <servers />
   </component>
