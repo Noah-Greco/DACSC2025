@@ -1,0 +1,342 @@
+package client.gui;
+
+import client.network.NetworkManager;
+import common.entity.Report;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+public class RapportMedicalClientUI extends JFrame {
+
+    // --- UI (métier) ---
+    private JTextField patientIdFilterField;
+    private JButton searchButton;
+
+    private DefaultTableModel tableModel;
+    private JTable reportsTable;
+
+    private JTextArea reportDetailArea;
+    private JButton addButton, editButton;
+
+    // --- Bouton logout visible en mode connecté ---
+    private JButton logoutButton;
+
+    // --- Panels ---
+    private JPanel topPanel;       // barre top (logout)
+    private JPanel filterPanel;
+    private JPanel displayPanel;
+    private JPanel actionPanel;
+    private JLabel helloLabel;
+    public RapportMedicalClientUI() {
+        super("Dossier Médical Sécurisé (MRPS) - Dr. Interface");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+
+        // 1) TOP : seulement Logout
+        topPanel = createTopPanel();
+
+        // 2) NORTH : filtres
+        filterPanel = createFilterPanel();
+
+        JPanel northContainer = new JPanel(new BorderLayout());
+        northContainer.add(topPanel, BorderLayout.NORTH);
+        northContainer.add(filterPanel, BorderLayout.CENTER);
+
+        // 3) CENTER : liste + détails
+        displayPanel = createReportDisplayPanel();
+
+        // 4) SOUTH : actions
+        actionPanel = createActionButtonsPanel();
+
+        add(northContainer, BorderLayout.NORTH);
+        add(displayPanel, BorderLayout.CENTER);
+        add(actionPanel, BorderLayout.SOUTH);
+
+        setSize(1100, 700);
+        setLocationRelativeTo(null);
+
+        // État initial : déconnecté (UI grisée) + pop-up login
+        setEtatConnecte(false);
+        setVisible(true);
+
+        // Ouvre la pop-up au lancement
+        SwingUtilities.invokeLater(this::showLoginPopup);
+    }
+
+
+
+    private JPanel createTopPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        helloLabel = new JLabel("Bonjour");
+        helloLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        helloLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+
+        logoutButton = new JButton("Logout");
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        logoutButton.addActionListener(e -> handleLogout());
+
+        panel.add(helloLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(logoutButton);
+
+        return panel;
+    }
+
+
+    private void showLoginPopup() {
+        // Pop-up modale: on ne peut pas utiliser l'appli tant que pas connecté
+        LoginDialog dialog = new LoginDialog(this, (response, login) -> {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Login OK", JOptionPane.INFORMATION_MESSAGE);
+            helloLabel.setText("Bonjour Dr. " + login);
+            setEtatConnecte(true);
+        });
+        dialog.setVisible(true);
+
+    }
+
+    private void handleLogout() {
+        new Thread(() -> {
+            try {
+                NetworkManager.getInstance().sendLogout();
+                // Si tu as un disconnect() dans NetworkManager, appelle-le ici.
+                // NetworkManager.getInstance().disconnect();
+
+            } catch (Exception ex) {
+                // Même si logout réseau échoue, on repasse côté UI en mode déconnecté (sinon tu restes bloqué)
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(this, "Client déco", "Information", JOptionPane.INFORMATION_MESSAGE);
+                setEtatConnecte(false);
+                showLoginPopup();
+            });
+        }).start();
+    }
+
+    private void setEtatConnecte(boolean connecte) {
+        setPanelEnabled(filterPanel, connecte);
+        setPanelEnabled(displayPanel, connecte);
+        setPanelEnabled(actionPanel, connecte);
+
+        logoutButton.setEnabled(connecte);
+        helloLabel.setVisible(connecte);
+
+        reportDetailArea.setEnabled(connecte);
+
+        if (!connecte) {
+            patientIdFilterField.setText("");
+            tableModel.setRowCount(0);
+            reportDetailArea.setText("");
+            helloLabel.setText("Bonjour");
+        }
+    }
+
+    private void setPanelEnabled(JPanel panel, boolean isEnabled) {
+        panel.setEnabled(isEnabled);
+        for (Component c : panel.getComponents()) {
+            if (c instanceof JPanel) setPanelEnabled((JPanel) c, isEnabled);
+            else c.setEnabled(isEnabled);
+        }
+        if (reportsTable != null) reportsTable.setEnabled(isEnabled);
+    }
+
+    // =================================================================================================
+    // PANNEAUX METIER
+    // =================================================================================================
+
+    private JPanel createFilterPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createTitledBorder("Filtrer les Rapports :"));
+
+        patientIdFilterField = new JTextField(10);
+        searchButton = new JButton("Lister les rapports");
+
+        JPanel pInternal = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pInternal.add(new JLabel("ID Patient (-1=Tous) :"));
+        pInternal.add(patientIdFilterField);
+        pInternal.add(searchButton);
+        panel.add(pInternal);
+
+        searchButton.addActionListener(e -> handleGetReports());
+
+        return panel;
+    }
+
+    private JPanel createReportDisplayPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Rapports trouvés :"));
+
+        String[] columns = {"ID", "Date", "Patient ID", "Médecin ID", "Extrait"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        reportsTable = new JTable(tableModel);
+        reportsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollTable = new JScrollPane(reportsTable);
+
+        reportDetailArea = new JTextArea();
+        reportDetailArea.setEditable(false);
+        reportDetailArea.setLineWrap(true);
+        reportDetailArea.setWrapStyleWord(true);
+        reportDetailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JPanel detailContainer = new JPanel(new BorderLayout());
+        detailContainer.add(new JLabel(" Aperçu du contenu (Double-clic liste pour zoom) :"), BorderLayout.NORTH);
+        detailContainer.add(new JScrollPane(reportDetailArea), BorderLayout.CENTER);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTable, detailContainer);
+        splitPane.setDividerLocation(300);
+        splitPane.setResizeWeight(0.5);
+        panel.add(splitPane, BorderLayout.CENTER);
+
+        reportsTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && reportsTable.getSelectedRow() != -1) {
+                String extrait = (String) reportsTable.getValueAt(reportsTable.getSelectedRow(), 4);
+                String id = (String) reportsTable.getValueAt(reportsTable.getSelectedRow(), 0);
+                reportDetailArea.setText("--- DÉTAIL RAPPORT #" + id + " ---\n\n" + extrait);
+            }
+        });
+
+        reportsTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && reportsTable.getSelectedRow() != -1) {
+                    openReadReportDialog(reportDetailArea.getText());
+                }
+            }
+        });
+
+        return panel;
+    }
+
+    private JPanel createActionButtonsPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        addButton = new JButton("Encoder Nouveau Rapport");
+        editButton = new JButton("Modifier Rapport Sélectionné");
+
+        panel.add(addButton);
+        panel.add(editButton);
+
+        addButton.addActionListener(e -> new ReportEditorDialog(this, null, this::handleGetReports).setVisible(true));
+
+        editButton.addActionListener(e -> {
+            int selectedRow = reportsTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Veuillez sélectionner un rapport dans la liste.", "Info", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                int id = Integer.parseInt((String) tableModel.getValueAt(selectedRow, 0));
+                String dateStr = (String) tableModel.getValueAt(selectedRow, 1);
+                int patientId = Integer.parseInt((String) tableModel.getValueAt(selectedRow, 2));
+                int doctorId = Integer.parseInt((String) tableModel.getValueAt(selectedRow, 3));
+                String desc = (String) tableModel.getValueAt(selectedRow, 4);
+
+                Date date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+
+                Report selectedReport = new Report(id, doctorId, patientId, date, desc);
+                new ReportEditorDialog(this, selectedReport, this::handleGetReports).setVisible(true);
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Erreur lecture ligne : " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
+        return panel;
+    }
+
+    // =================================================================================================
+    // RÉSEAU
+    // =================================================================================================
+
+    private void handleGetReports() {
+        searchButton.setEnabled(false);
+        reportDetailArea.setText("Chargement sécurisé en cours...");
+
+        String filterText = patientIdFilterField.getText().trim();
+        int filterId = -1;
+        try {
+            if (!filterText.isEmpty()) filterId = Integer.parseInt(filterText);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID Patient invalide", "Erreur", JOptionPane.WARNING_MESSAGE);
+            searchButton.setEnabled(true);
+            return;
+        }
+
+        final int fid = filterId;
+        new Thread(() -> {
+            try {
+                List<Report> rapports = NetworkManager.getInstance().sendGetReports(fid);
+
+                SwingUtilities.invokeLater(() -> {
+                    tableModel.setRowCount(0);
+                    if (rapports.isEmpty()) {
+                        reportDetailArea.setText("Aucun rapport trouvé.");
+                    } else {
+                        for (Report r : rapports) {
+                            tableModel.addRow(new Object[]{
+                                    String.valueOf(r.getId()),
+                                    r.getDate().toString(),
+                                    String.valueOf(r.getPatientId()),
+                                    String.valueOf(r.getDoctorId()),
+                                    r.getDescription()
+                            });
+                        }
+                        reportDetailArea.setText("Chargement terminé : " + rapports.size() + " rapports.");
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this, "Erreur : " + ex.getMessage());
+                    reportDetailArea.setText("Erreur lors du chargement.");
+                });
+            } finally {
+                SwingUtilities.invokeLater(() -> searchButton.setEnabled(true));
+            }
+        }).start();
+    }
+
+    // =================================================================================================
+    // POPUP LECTURE
+    // =================================================================================================
+
+    private void openReadReportDialog(String text) {
+        JDialog dialog = new JDialog(this, "Lecture Rapport", true);
+        dialog.setSize(600, 400);
+        dialog.setLocationRelativeTo(this);
+
+        JTextArea area = new JTextArea(text);
+        area.setEditable(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        area.setMargin(new Insets(10, 10, 10, 10));
+
+        dialog.add(new JScrollPane(area));
+
+        JButton btnClose = new JButton("Fermer");
+        btnClose.addActionListener(e -> dialog.dispose());
+
+        JPanel p = new JPanel();
+        p.add(btnClose);
+        dialog.add(p, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
+    }
+}
