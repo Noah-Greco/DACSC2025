@@ -101,32 +101,35 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container">
+  <!-- ÉCRAN LOGIN SEUL -->
+  <LoginPanel
+      v-if="!patientId"
+      @logged-in="onLoggedIn"
+  />
+
+  <!-- APP NORMALE APRÈS LOGIN -->
+  <div v-else class="container">
     <h1>Doctolib'Light</h1>
+    <h2>Bonjour {{ patientName }}</h2>
 
-    <LoginPanel v-if="!patientId" @logged-in="onLoggedIn" />
+    <MyAppointments
+        :appointments="myConsultations"
+        :getDocName="getDoctorName"
+        :getSpecName="getSpecialtyNameByDoctorId"
+        @logout="logout"
+        @delete="deleteAppointment"
+        @showSearch="showSearch = true"
+    />
 
-    <template v-else>
-      <h2>Bonjour {{ patientName }}</h2>
-
-      <MyAppointments
-          :appointments="myConsultations"
-          :getDocName="getDoctorName"
-          :getSpecName="getSpecialtyNameByDoctorId"
-          @logout="logout"
-          @delete="deleteAppointment"
-          @showSearch="showSearch = true"
-      />
-
-      <AvailableConsultations
-          v-if="showSearch"
-          :doctors="doctors"
-          :specialties="specialties"
-          :getDocName="getDoctorName"
-          @book="book"
-          @cancelSearch="showSearch = false"
-          @performSearch="performSearch"
-      />
-    </template>
+    <AvailableConsultations
+        v-if="showSearch"
+        :doctors="doctors"
+        :specialties="specialties"
+        :getDocName="getDoctorName"
+        @book="book"
+        @cancelSearch="showSearch = false"
+        @performSearch="performSearch"
+    />
   </div>
 </template>
+

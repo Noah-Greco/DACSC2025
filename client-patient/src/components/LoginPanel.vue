@@ -38,34 +38,42 @@ async function submit() {
 </script>
 
 <template>
-  <div class="login-box">
-    <h2>Connexion patient</h2>
+  <div class="login-page">
+    <div class="login-shell">
+      <h1 class="app-title">Doctolib'Light</h1>
 
-    <div class="form-group">
-      <label>Nom</label>
-      <input v-model="lastName" placeholder="Dupont" />
+      <div class="login-box">
+        <h2>Connexion patient</h2>
+
+        <div class="form-group">
+          <label>Nom</label>
+          <input v-model="lastName" placeholder="Dupont" />
+        </div>
+
+        <div class="form-group">
+          <label>Prénom</label>
+          <input v-model="firstName" placeholder="Alice" />
+        </div>
+
+        <div class="form-group checkbox">
+          <input type="checkbox" id="new" v-model="isNew" />
+          <label for="new">Nouveau patient</label>
+        </div>
+
+        <div class="form-group" v-if="!isNew">
+          <label>Numéro patient</label>
+          <input v-model="patientId" placeholder="ex: 6" />
+        </div>
+
+        <div class="form-group" v-else>
+          <label>Date de naissance</label>
+          <input type="date" v-model="birthDate" />
+        </div>
+
+        <button @click="submit">Login</button>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label>Prénom</label>
-      <input v-model="firstName" placeholder="Alice" />
-    </div>
-
-    <div class="form-group checkbox">
-      <input type="checkbox" id="new" v-model="isNew" />
-      <label for="new">Nouveau patient</label>
-    </div>
-
-    <div class="form-group" v-if="!isNew">
-      <label>Numéro patient</label>
-      <input v-model="patientId" placeholder="ex: 6" />
-    </div>
-
-    <div class="form-group" v-else>
-      <label>Date de naissance</label>
-      <input type="date" v-model="birthDate" />
-    </div>
-
-    <button @click="submit">Login</button>
   </div>
 </template>
+
+
