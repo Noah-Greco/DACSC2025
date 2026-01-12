@@ -25,7 +25,6 @@ public class ConsultationHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
 
-        // 1. Gérer le CORS (OPTIONS)
         if (method.equalsIgnoreCase("OPTIONS")) {
             HttpUtils.addCorsHeaders(exchange);
             exchange.sendResponseHeaders(204, -1);
@@ -57,7 +56,6 @@ public class ConsultationHandler implements HttpHandler {
     private void handleGet(HttpExchange exchange) throws IOException, SQLException {
         Map<String, String> params = HttpUtils.parseQueryParams(exchange.getRequestURI().getQuery());
 
-        // --- Paramètres REST attendus par l’énoncé ---
         String doctor = params.get("doctor");         // nom (last_name)
         String specialty = params.get("specialty");   // nom de spécialité
 
@@ -71,11 +69,9 @@ public class ConsultationHandler implements HttpHandler {
             patientId = Integer.parseInt(params.get("patientId"));
         }
 
-        // --- Appel DAO conforme ---
-        // Règle: si patientId == null => renvoyer UNIQUEMENT les créneaux libres (patient_id IS NULL)
+        //si patientId est null on renvoie juste les créneaux libres
         List<Consultation> list = dao.searchConsultationsRest(doctor, specialty, date, patientId);
 
-        // --- Conversion JSON Manuelle ---
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < list.size(); i++) {
             Consultation c = list.get(i);

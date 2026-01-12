@@ -62,7 +62,6 @@ async function deleteAppointment(id: number) {
   if (ok) {
     await loadMyConsultations()
     if (showSearch.value) {
-      // optionnel : relancer une recherche
     }
   }
 }
@@ -80,7 +79,6 @@ async function book(id: number) {
   }
 }
 
-// l’API fera la sélection ; le front ne filtre plus "patientId null"
 async function performSearch(
     filters: { specId: number, docId: number },
     cb: (data: Consultation[]) => void

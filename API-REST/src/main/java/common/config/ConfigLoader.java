@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class ConfigLoader {
 
-    private static final String CONFIG_FILE = "config.properties"; // Chemin à la racine des ressources
+    private static final String CONFIG_FILE = "config.properties";
     private static final Properties PROPERTIES = new Properties();
 
     static {

@@ -6,8 +6,8 @@ import java.time.LocalDate;
 public class Consultation implements Entity {
 
     private int id;
-    private int doctorId;    // Clé étrangère vers Doctor (NON NULL)
-    private Integer patientId; // Clé étrangère vers Patient (Peut être NULL)
+    private int doctorId;
+    private Integer patientId;
     private LocalDate date;
     private String hour;
     private String reason;

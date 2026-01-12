@@ -4,12 +4,11 @@ import java.io.Serializable;
 
 public class UpdateConsultationRequest implements Serializable {
     private int consultationId;
-    private Integer patientId; // Peut être null
+    private Integer patientId;
     private String reason;
-    private String newDate;    // Format String pour simplifier le transport
+    private String newDate;
     private String newHour;
 
-    // Constructeurs, Getters et Setters
     public UpdateConsultationRequest() {}
 
     public int getConsultationId() { return consultationId; }

@@ -17,7 +17,6 @@ public class HttpUtils {
 
     // Envoie la réponse JSON
     public static void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
-        // On s'assure que les headers CORS sont là
         if (!exchange.getResponseHeaders().containsKey("Access-Control-Allow-Origin")) {
             addCorsHeaders(exchange);
         }
@@ -39,7 +38,6 @@ public class HttpUtils {
         return sb.toString();
     }
 
-    // Extrait une valeur d'un JSON simple "clé": "valeur"
     public static String extractJsonValue(String json, String key) {
         String search = "\"" + key + "\":";
         int start = json.indexOf(search);
@@ -52,7 +50,6 @@ public class HttpUtils {
         }
 
         int end = start;
-        // On lit jusqu'à la fin de la valeur (guillemet, virgule ou accolade fermante)
         while (end < json.length() && json.charAt(end) != '"' && json.charAt(end) != ',' && json.charAt(end) != '}') {
             end++;
         }
@@ -60,7 +57,6 @@ public class HttpUtils {
         return json.substring(start, end).trim();
     }
 
-    // Parse les paramètres d'URL (ex: ?id=5&name=toto)
     public static Map<String, String> parseQueryParams(String query) {
         Map<String, String> res = new HashMap<>();
         if (query == null) return res;

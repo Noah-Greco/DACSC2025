@@ -13,44 +13,31 @@ import java.util.Date;
 import java.util.List;
 
 public class RapportMedicalClientUI extends JFrame {
-
-    // --- UI (métier) ---
     private JTextField patientIdFilterField;
     private JButton searchButton;
-
     private DefaultTableModel tableModel;
     private JTable reportsTable;
-
     private JButton addButton, editButton;
-
-    // --- Bouton logout visible en mode connecté ---
     private JButton logoutButton;
-
-    // --- Panels ---
-    private JPanel topPanel;       // barre top (logout)
+    private JPanel topPanel;
     private JPanel filterPanel;
     private JPanel displayPanel;
     private JPanel actionPanel;
     private JLabel helloLabel;
+
     public RapportMedicalClientUI() {
         super("Dossier Médical Sécurisé (MRPS) - Dr. Interface");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
-
-        // 1) TOP : seulement Logout
         topPanel = createTopPanel();
-
-        // 2) NORTH : filtres
         filterPanel = createFilterPanel();
 
         JPanel northContainer = new JPanel(new BorderLayout());
         northContainer.add(topPanel, BorderLayout.NORTH);
         northContainer.add(filterPanel, BorderLayout.CENTER);
 
-        // 3) CENTER : liste + détails
         displayPanel = createReportDisplayPanel();
 
-        // 4) SOUTH : actions
         actionPanel = createActionButtonsPanel();
 
         add(northContainer, BorderLayout.NORTH);
@@ -60,15 +47,12 @@ public class RapportMedicalClientUI extends JFrame {
         setSize(1100, 700);
         setLocationRelativeTo(null);
 
-        // État initial : déconnecté (UI grisée) + pop-up login
         setEtatConnecte(false);
         setVisible(true);
 
         // Ouvre la pop-up au lancement
         SwingUtilities.invokeLater(this::showLoginPopup);
     }
-
-
 
     private JPanel createTopPanel() {
         JPanel panel = new JPanel();
@@ -77,7 +61,7 @@ public class RapportMedicalClientUI extends JFrame {
 
         helloLabel = new JLabel("Bonjour");
         helloLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        helloLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        helloLabel.setFont(new Font("SansSherif", Font.BOLD, 14));
 
         logoutButton = new JButton("Logout");
         logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -90,8 +74,6 @@ public class RapportMedicalClientUI extends JFrame {
 
         return panel;
     }
-
-
     private void showLoginPopup() {
         // Pop-up modale: on ne peut pas utiliser l'appli tant que pas connecté
         LoginDialog dialog = new LoginDialog(this, (response, login) -> {
@@ -102,16 +84,12 @@ public class RapportMedicalClientUI extends JFrame {
         dialog.setVisible(true);
 
     }
-
     private void handleLogout() {
-        new Thread(() -> {
+        new Thread(() -> { //Créer thread réseau pour déco
             try {
                 NetworkManager.getInstance().sendLogout();
-                // Si tu as un disconnect() dans NetworkManager, appelle-le ici.
-                // NetworkManager.getInstance().disconnect();
 
             } catch (Exception ex) {
-                // Même si logout réseau échoue, on repasse côté UI en mode déconnecté (sinon tu restes bloqué)
             }
 
             SwingUtilities.invokeLater(() -> {
@@ -121,8 +99,7 @@ public class RapportMedicalClientUI extends JFrame {
             });
         }).start();
     }
-
-    private void setEtatConnecte(boolean connecte) {
+    private void setEtatConnecte(boolean connecte) { //Boolean permetant d'afficher l'app complet si connecter et inversement si pas connecter
         setPanelEnabled(filterPanel, connecte);
         setPanelEnabled(displayPanel, connecte);
         setPanelEnabled(actionPanel, connecte);
@@ -136,7 +113,7 @@ public class RapportMedicalClientUI extends JFrame {
             helloLabel.setText("Bonjour");
         }
     }
-
+    //Desactive le panel et tt ses enfants pour aps avoir de beug visuel
     private void setPanelEnabled(JPanel panel, boolean isEnabled) {
         panel.setEnabled(isEnabled);
         for (Component c : panel.getComponents()) {
@@ -145,12 +122,7 @@ public class RapportMedicalClientUI extends JFrame {
         }
         if (reportsTable != null) reportsTable.setEnabled(isEnabled);
     }
-
-    // =================================================================================================
-    // PANNEAUX METIER
-    // =================================================================================================
-
-    private JPanel createFilterPanel() {
+    private JPanel createFilterPanel() { //panneau de filtre
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createTitledBorder("Filtrer les Rapports :"));
@@ -169,7 +141,7 @@ public class RapportMedicalClientUI extends JFrame {
         return panel;
     }
 
-    private JPanel createReportDisplayPanel() {
+    private JPanel createReportDisplayPanel() { //Tableau rapport
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Rapports trouvés :"));
 
@@ -182,13 +154,42 @@ public class RapportMedicalClientUI extends JFrame {
         reportsTable = new JTable(tableModel);
         reportsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        reportsTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Double-clic
+                if (e.getClickCount() == 2 && reportsTable.isEnabled()) {
+                    int row = reportsTable.getSelectedRow();
+                    if (row == -1) return;
+
+                    // Récupérer les données de la ligne
+                    String id = (String) tableModel.getValueAt(row, 0);
+                    String date = (String) tableModel.getValueAt(row, 1);
+                    String patientId = (String) tableModel.getValueAt(row, 2);
+                    String doctorId = (String) tableModel.getValueAt(row, 3);
+                    String desc = (String) tableModel.getValueAt(row, 4);
+
+                    // Construire un texte lisible
+                    String texte =
+                            "Rapport ID : " + id + "\n"
+                                    + "Date : " + date + "\n"
+                                    + "Patient ID : " + patientId + "\n"
+                                    + "Médecin ID : " + doctorId + "\n\n"
+                                    + "Contenu :\n" + desc;
+
+                    // Ouvrir la pop-up
+                    openReadReportDialog(texte);
+                }
+            }
+        });
+
         JScrollPane scrollTable = new JScrollPane(reportsTable);
         panel.add(scrollTable, BorderLayout.CENTER);
 
         return panel;
     }
 
-    private JPanel createActionButtonsPanel() {
+    private JPanel createActionButtonsPanel() { //Ajout et modifie les rapports
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addButton = new JButton("Encoder Nouveau Rapport");
         editButton = new JButton("Modifier Rapport Sélectionné");
@@ -206,6 +207,7 @@ public class RapportMedicalClientUI extends JFrame {
             }
 
             try {
+                //recup les infos d'un rapport et en fait un objet Rapport
                 int id = Integer.parseInt((String) tableModel.getValueAt(selectedRow, 0));
                 String dateStr = (String) tableModel.getValueAt(selectedRow, 1);
                 int patientId = Integer.parseInt((String) tableModel.getValueAt(selectedRow, 2));
@@ -225,13 +227,10 @@ public class RapportMedicalClientUI extends JFrame {
 
         return panel;
     }
-
-    // =================================================================================================
     // RÉSEAU
-    // =================================================================================================
-
+    //Appeler qd on veut lister les rapports, appelle le serveur pour récup la liste des rapports et remplit swing avec
     private void handleGetReports() {
-        searchButton.setEnabled(false);
+        searchButton.setEnabled(false); //empeche double clic
 
         String filterText = patientIdFilterField.getText().trim();
         int filterId = -1;
@@ -242,16 +241,18 @@ public class RapportMedicalClientUI extends JFrame {
             searchButton.setEnabled(true);
             return;
         }
-
+        //derniere version filtrer du filtre
         final int fid = filterId;
         new Thread(() -> {
             try {
+                //On envoie la requete au serveur et attends sa réponse contenenant la liste des rapports
                 List<Report> rapports = NetworkManager.getInstance().sendGetReports(fid);
 
                 SwingUtilities.invokeLater(() -> {
                     tableModel.setRowCount(0);
                     if (rapports.isEmpty()) {
                     } else {
+                        //affiche dans l'ui tt les rapports
                         for (Report r : rapports) {
                             tableModel.addRow(new Object[]{
                                     String.valueOf(r.getId()),
@@ -273,11 +274,7 @@ public class RapportMedicalClientUI extends JFrame {
             }
         }).start();
     }
-
-    // =================================================================================================
-    // POPUP LECTURE
-    // =================================================================================================
-
+    // POPUP permettant de lire le rapport en txt
     private void openReadReportDialog(String text) {
         JDialog dialog = new JDialog(this, "Lecture Rapport", true);
         dialog.setSize(600, 400);

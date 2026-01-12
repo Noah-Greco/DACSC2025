@@ -7,6 +7,7 @@
     <list default="true" id="714c30d1-cad5-4f74-a8ef-1a43a645500f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client-patient/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-patient/src/components/AvailableConsultations.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/components/AvailableConsultations.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client-patient/src/components/LoginPanel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/components/LoginPanel.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -45,7 +46,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "François",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -80,7 +81,7 @@
       <workItem from="1768040573930" duration="121000" />
       <workItem from="1768040706357" duration="10953000" />
       <workItem from="1768138676133" duration="4341000" />
-      <workItem from="1768210317292" duration="4077000" />
+      <workItem from="1768210317292" duration="12510000" />
     </task>
     <servers />
   </component>

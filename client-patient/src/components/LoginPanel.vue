@@ -11,8 +11,8 @@ const dao = new PatientDAO()
 const lastName = ref('')
 const firstName = ref('')
 const isNew = ref(false)
-const patientId = ref<string>('')      // utilisé si isNew=false
-const birthDate = ref<string>('')      // utilisé si isNew=true
+const patientId = ref<string>('')
+const birthDate = ref<string>('')
 
 async function submit() {
   if (!lastName.value || !firstName.value) {
