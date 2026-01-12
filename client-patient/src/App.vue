@@ -109,7 +109,7 @@ onMounted(async () => {
 
   <!-- APP NORMALE APRÈS LOGIN -->
   <div v-else class="container">
-    <h1>Doctolib'Light</h1>
+    <h1>My Online Doctor</h1>
     <h2>Bonjour {{ patientName }}</h2>
 
     <MyAppointments

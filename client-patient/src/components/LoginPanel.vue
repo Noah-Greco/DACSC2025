@@ -40,19 +40,19 @@ async function submit() {
 <template>
   <div class="login-page">
     <div class="login-shell">
-      <h1 class="app-title">Doctolib'Light</h1>
+      <h1 class="app-title">My Online Doctor</h1>
 
       <div class="login-box">
         <h2>Connexion patient</h2>
 
         <div class="form-group">
           <label>Nom</label>
-          <input v-model="lastName" placeholder="Dupont" />
+          <input v-model="lastName" placeholder="Dewez" />
         </div>
 
         <div class="form-group">
           <label>Prénom</label>
-          <input v-model="firstName" placeholder="Alice" />
+          <input v-model="firstName" placeholder="François" />
         </div>
 
         <div class="form-group checkbox">
@@ -62,7 +62,7 @@ async function submit() {
 
         <div class="form-group" v-if="!isNew">
           <label>Numéro patient</label>
-          <input v-model="patientId" placeholder="ex: 6" />
+          <input v-model="patientId" placeholder="ex: 5" />
         </div>
 
         <div class="form-group" v-else>

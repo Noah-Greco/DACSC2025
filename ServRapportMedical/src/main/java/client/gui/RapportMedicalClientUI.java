@@ -21,7 +21,6 @@ public class RapportMedicalClientUI extends JFrame {
     private DefaultTableModel tableModel;
     private JTable reportsTable;
 
-    private JTextArea reportDetailArea;
     private JButton addButton, editButton;
 
     // --- Bouton logout visible en mode connecté ---
@@ -116,7 +115,7 @@ public class RapportMedicalClientUI extends JFrame {
             }
 
             SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(this, "Client déco", "Information", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Au revoir !", "Déconnexion", JOptionPane.INFORMATION_MESSAGE);
                 setEtatConnecte(false);
                 showLoginPopup();
             });
@@ -131,12 +130,9 @@ public class RapportMedicalClientUI extends JFrame {
         logoutButton.setEnabled(connecte);
         helloLabel.setVisible(connecte);
 
-        reportDetailArea.setEnabled(connecte);
-
         if (!connecte) {
             patientIdFilterField.setText("");
             tableModel.setRowCount(0);
-            reportDetailArea.setText("");
             helloLabel.setText("Bonjour");
         }
     }
@@ -163,7 +159,7 @@ public class RapportMedicalClientUI extends JFrame {
         searchButton = new JButton("Lister les rapports");
 
         JPanel pInternal = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pInternal.add(new JLabel("ID Patient (-1=Tous) :"));
+        pInternal.add(new JLabel("ID Patient (Vide=Tous) :"));
         pInternal.add(patientIdFilterField);
         pInternal.add(searchButton);
         panel.add(pInternal);
@@ -185,39 +181,9 @@ public class RapportMedicalClientUI extends JFrame {
 
         reportsTable = new JTable(tableModel);
         reportsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         JScrollPane scrollTable = new JScrollPane(reportsTable);
-
-        reportDetailArea = new JTextArea();
-        reportDetailArea.setEditable(false);
-        reportDetailArea.setLineWrap(true);
-        reportDetailArea.setWrapStyleWord(true);
-        reportDetailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-
-        JPanel detailContainer = new JPanel(new BorderLayout());
-        detailContainer.add(new JLabel(" Aperçu du contenu (Double-clic liste pour zoom) :"), BorderLayout.NORTH);
-        detailContainer.add(new JScrollPane(reportDetailArea), BorderLayout.CENTER);
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTable, detailContainer);
-        splitPane.setDividerLocation(300);
-        splitPane.setResizeWeight(0.5);
-        panel.add(splitPane, BorderLayout.CENTER);
-
-        reportsTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && reportsTable.getSelectedRow() != -1) {
-                String extrait = (String) reportsTable.getValueAt(reportsTable.getSelectedRow(), 4);
-                String id = (String) reportsTable.getValueAt(reportsTable.getSelectedRow(), 0);
-                reportDetailArea.setText("--- DÉTAIL RAPPORT #" + id + " ---\n\n" + extrait);
-            }
-        });
-
-        reportsTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && reportsTable.getSelectedRow() != -1) {
-                    openReadReportDialog(reportDetailArea.getText());
-                }
-            }
-        });
+        panel.add(scrollTable, BorderLayout.CENTER);
 
         return panel;
     }
@@ -266,7 +232,6 @@ public class RapportMedicalClientUI extends JFrame {
 
     private void handleGetReports() {
         searchButton.setEnabled(false);
-        reportDetailArea.setText("Chargement sécurisé en cours...");
 
         String filterText = patientIdFilterField.getText().trim();
         int filterId = -1;
@@ -286,7 +251,6 @@ public class RapportMedicalClientUI extends JFrame {
                 SwingUtilities.invokeLater(() -> {
                     tableModel.setRowCount(0);
                     if (rapports.isEmpty()) {
-                        reportDetailArea.setText("Aucun rapport trouvé.");
                     } else {
                         for (Report r : rapports) {
                             tableModel.addRow(new Object[]{
@@ -297,14 +261,12 @@ public class RapportMedicalClientUI extends JFrame {
                                     r.getDescription()
                             });
                         }
-                        reportDetailArea.setText("Chargement terminé : " + rapports.size() + " rapports.");
                     }
                 });
             } catch (Exception ex) {
                 ex.printStackTrace();
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(this, "Erreur : " + ex.getMessage());
-                    reportDetailArea.setText("Erreur lors du chargement.");
                 });
             } finally {
                 SwingUtilities.invokeLater(() -> searchButton.setEnabled(true));
