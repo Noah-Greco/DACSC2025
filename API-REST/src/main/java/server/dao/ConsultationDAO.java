@@ -84,7 +84,6 @@ public class ConsultationDAO {
     public List<Consultation> searchConsultation(Integer doctorId, Integer patientId, LocalDate dateStart, LocalDate dateEnd) throws SQLException {
         List<Consultation> consultations = new ArrayList<>();
 
-        // 1. CORRECTION NOM DE TABLE (J'ai ajouté le 's' à consultations)
         StringBuilder sql = new StringBuilder("SELECT * FROM consultations WHERE 1=1");
 
         if (patientId != null && patientId > 0) {
@@ -147,7 +146,7 @@ public class ConsultationDAO {
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         LocalTime currentTime = LocalTime.parse(startTime, timeFormatter);
-        final LocalTime endTimeLimit = LocalTime.of(17, 0); // Limite de 17:00
+        final LocalTime endTimeLimit = LocalTime.of(17, 0);
 
         String sql = "INSERT INTO consultations (doctor_id, patient_id, date, hour, reason) VALUES (?, NULL, ?, ?, '')";
 
@@ -221,7 +220,6 @@ public class ConsultationDAO {
     }
 
     public boolean deleteConsultation(int consultationId) throws SQLException {
-        // On ne supprime pas la ligne (DELETE), on la remet à zéro (UPDATE)
         String sql = "UPDATE consultations SET patient_id = NULL, reason = '' WHERE id = ?";
 
         try (PreparedStatement pStmt = conn.prepareStatement(sql)) {

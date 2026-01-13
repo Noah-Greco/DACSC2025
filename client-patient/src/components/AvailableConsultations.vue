@@ -30,7 +30,6 @@ const filteredDoctors = computed(() => {
 })
 
 const canSearch = computed(() => {
-  // tu peux décider ici si un médecin est obligatoire
   return true
 })
 

@@ -4,6 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+    <list default="true" id="714c30d1-cad5-4f74-a8ef-1a43a645500f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-patient/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-patient/src/components/AvailableConsultations.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/components/AvailableConsultations.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-patient/src/components/LoginPanel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client-patient/src/components/LoginPanel.vue" afterDir="false" />
+    </list>
     <list default="true" id="714c30d1-cad5-4f74-a8ef-1a43a645500f" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,6 +36,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.MainAPI.executor": "Run",
+    "Application.MainClient.executor": "Run",
+    "Application.MainServer.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Node.js.main.ts.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "François",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "show.migrate.to.gradle.popup": "false",
+    "ts.external.directory.path": "C:\\Users\\frans\\OneDrive - Enseignement de la Province de Liège\\hepl-cours\\b3\\Q1\\DACSC\\Labo\\DACSC2025\\client-patient\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;Application.MainAPI.executor&quot;: &quot;Run&quot;,
@@ -76,6 +103,7 @@
       <workItem from="1768040573930" duration="121000" />
       <workItem from="1768040706357" duration="10953000" />
       <workItem from="1768138676133" duration="4341000" />
+      <workItem from="1768210317292" duration="12510000" />
       <workItem from="1768210317292" duration="4077000" />
       <workItem from="1768218981196" duration="7880000" />
       <workItem from="1768242376223" duration="12305000" />

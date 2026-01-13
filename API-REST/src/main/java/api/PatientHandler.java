@@ -3,7 +3,7 @@ package api;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import server.dao.PatientDAO;
-import server.util.HttpUtils; // On importe notre utilitaire
+import server.util.HttpUtils;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -18,14 +18,12 @@ public class PatientHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        // 1. Gestion OPTIONS (CORS pré-flight)
         if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
             HttpUtils.addCorsHeaders(exchange);
             exchange.sendResponseHeaders(204, -1);
             return;
         }
 
-        // 2. Traitement POST
         if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             try {
                 String body = HttpUtils.readRequestBody(exchange);
@@ -41,7 +39,6 @@ public class PatientHandler implements HttpHandler {
                 int id;
 
                 if (isNew) {
-                    // 🔹 NOUVEAU PATIENT → birthDate obligatoire
                     if (birthDateStr == null) {
                         HttpUtils.sendResponse(exchange, 400, "{\"error\":\"birthDate manquante\"}");
                         return;
@@ -58,7 +55,6 @@ public class PatientHandler implements HttpHandler {
                     id = dao.createPatient(lastName, firstName, birthDate);
 
                 } else {
-                    // 🔹 PATIENT EXISTANT → patientId obligatoire
                     if (patientIdStr == null) {
                         HttpUtils.sendResponse(exchange, 400, "{\"error\":\"patientId manquant\"}");
                         return;
@@ -75,13 +71,11 @@ public class PatientHandler implements HttpHandler {
                     id = pid;
                 }
 
-                // 🔹 RÉPONSE OK
                 HttpUtils.sendResponse(exchange, 200, "{\"id\":" + id + "}");
 
             } catch (Exception e) {
                 e.printStackTrace();
 
-                // 🔹 Message générique (PAS e.getMessage())
                 HttpUtils.sendResponse(exchange, 500, "{\"error\":\"Erreur serveur\"}");
             }
 

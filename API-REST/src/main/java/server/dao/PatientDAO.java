@@ -34,10 +34,9 @@ public class PatientDAO {
                 if (rs.next()) return rs.getInt("id");
             }
         }
-        return -1; // Pas trouvé
+        return -1;
     }
 
-    // Crée un nouveau patient
     public int createPatient(String lastName, String firstName, LocalDate birthDate) throws SQLException {
         String sql = "INSERT INTO patients (last_name, first_name, birth_date) VALUES (?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
