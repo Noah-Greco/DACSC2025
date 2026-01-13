@@ -8,6 +8,7 @@ import java.awt.*;
 
 public class LoginDialog extends JDialog {
 
+    //Au lieu de coupler la fenêtre avec une autre classe on passe un callback onSuccess
     public interface LoginSuccessCallback {
         void onSuccess(ReponseLogin response, String login);
     }
@@ -31,8 +32,9 @@ public class LoginDialog extends JDialog {
         btnLogin.addActionListener(e -> doLogin());
         btnCancel.addActionListener(e -> System.exit(0));
 
-        getRootPane().setDefaultButton(btnLogin);
+        getRootPane().setDefaultButton(btnLogin); //touche enter déclenche le login
 
+        //Centrer popup et gérer taille
         pack();
         setResizable(false);
         setLocationRelativeTo(owner);
@@ -57,7 +59,7 @@ public class LoginDialog extends JDialog {
         panel.add(btnLogin);
         return panel;
     }
-
+//Activation / Désactivation des champs pour empêcher l'user de recliqué et tt casser pdt requete réseau
     private void setUiEnabled(boolean enabled) {
         loginField.setEnabled(enabled);
         passwordField.setEnabled(enabled);
@@ -66,6 +68,7 @@ public class LoginDialog extends JDialog {
     }
 
     private void doLogin() {
+        //recup login & mdp
         String login = loginField.getText().trim();
         String pass = new String(passwordField.getPassword());
 
@@ -76,17 +79,17 @@ public class LoginDialog extends JDialog {
 
         setUiEnabled(false);
 
-        new Thread(() -> {
+        new Thread(() -> { //Sans Thread c'est comme si l'interface gelait
             try {
+                //Singleton donc 1 seul instance possible de la connexion
                 NetworkManager nm = NetworkManager.getInstance();
-                nm.connect(); // si déjà connecté, NetworkManager devrait gérer / ignorer
+                nm.connect(); // connexion au serv .Si déjà connecté, NM ignore
 
                 ReponseLogin reponse = nm.sendLogin(login, pass);
 
-                SwingUtilities.invokeLater(() -> {
+                SwingUtilities.invokeLater(() -> {//Peut pas changer UI ailleurs que EDT dcp on dit a Swing d'exec ce code
                     if (reponse.isValide()) {
-                        // Succès -> on ferme la pop-up, on notifie l'UI principale
-                        dispose();
+                        dispose();//ferme popup
                         onSuccess.onSuccess(reponse, login);
                     } else {
                         JOptionPane.showMessageDialog(this, reponse.getMessage(), "Login KO", JOptionPane.ERROR_MESSAGE);
@@ -100,6 +103,6 @@ public class LoginDialog extends JDialog {
                     setUiEnabled(true);
                 });
             }
-        }).start();
+        }).start();//démarre le thread
     }
 }
