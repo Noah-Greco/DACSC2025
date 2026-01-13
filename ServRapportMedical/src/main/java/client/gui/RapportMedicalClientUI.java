@@ -24,7 +24,7 @@ public class RapportMedicalClientUI extends JFrame {
     private JPanel displayPanel;
     private JPanel actionPanel;
     private JLabel helloLabel;
-
+    
     public RapportMedicalClientUI() {
         super("Dossier Médical Sécurisé (MRPS) - Dr. Interface");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

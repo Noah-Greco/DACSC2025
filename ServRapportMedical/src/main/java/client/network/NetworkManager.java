@@ -21,11 +21,12 @@ public class NetworkManager {
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     private SecretKey sessionKey; // La clé AES stockée ici
-
+//La classe sert a ouvrir et maintenir une connexion TCP serveur
     private NetworkManager() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    //Logique Singleton
     public static synchronized NetworkManager getInstance() {
         if (instance == null) {
             instance = new NetworkManager();
@@ -35,37 +36,37 @@ public class NetworkManager {
 
     public void connect() throws IOException {
         if (socket == null || socket.isClosed()) {
-            String host = ConfigLoader.getProperty("SERVER_IP");
+            String host = ConfigLoader.getProperty("SERVER_IP");//recup l'ip apd du fichier config.proporties
             int port = Integer.parseInt(ConfigLoader.getProperty("PORT_REPORT_SECURE"));
 
             System.out.println("Connexion vers " + host + ":" + port);
 
-            socket = new Socket(host, port);
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            ois = new ObjectInputStream(socket.getInputStream());
+            socket = new Socket(host, port); //création connexion tcp
+            oos = new ObjectOutputStream(socket.getOutputStream());//envoie donnée
+            ois = new ObjectInputStream(socket.getInputStream());//recois donnée
         }
     }
 
     public ReponseLogin sendLogin(String login, String password) throws Exception {
         RequeteLogin req = new RequeteLogin(login, password);
-        oos.writeObject(req);
+        oos.writeObject(req);//envoie requete login au serveur
 
         Object rep = ois.readObject();
         if (rep instanceof ReponseLogin) {
-            ReponseLogin reponse = (ReponseLogin) rep;
+            ReponseLogin reponse = (ReponseLogin) rep; //vérifie que c bien la rep login
 
             if (reponse.isValide() && reponse.getSessionKey() != null) {
                 System.out.println("[CLIENT] Handshake : Clé chiffrée reçue. Déchiffrement RSA...");
 
                 try {
-                    // 1. Charger MA Clé Privée (depuis client.jks)
+                    // 1. Charger la Clé Privée du client ( moi )
                     java.security.PrivateKey myPrivateKey = common.crypto.KeyStoreUtils.loadPrivateKey(
                             "keystores/client.jks", "123456", "client"
                     );
 
-                    // 2. Déchiffrer la clé de session (RSA -> AES bytes)
+                    // 2. Déchiffrer la clé de session (utilise RSA --> pour avoir AES)
                     byte[] encryptedKey = reponse.getSessionKey();
-                    byte[] aesKeyBytes = MyCrypto.decryptRSA(myPrivateKey, encryptedKey);
+                    byte[] aesKeyBytes = MyCrypto.decryptRSA(myPrivateKey, encryptedKey);//utilise ma clé privé pour déchiffrer
 
                     // 3. Reconstruire la clé AES
                     this.sessionKey = new SecretKeySpec(aesKeyBytes, "AES");
@@ -105,23 +106,26 @@ public class NetworkManager {
             System.out.println("[CLIENT] Données reçues (CRYPTÉES) : " + Arrays.toString(Arrays.copyOfRange(recu, 0, Math.min(recu.length, 50))) + "...");
             System.out.println("[CLIENT] HMAC reçu : " + Arrays.toString(response.getHmac()));
 
-            // A. Vérification HMAC
+            // A.Vérification HMAC
+            //-->Le serveur a calculé un HMAC sur dataCryptes avec la clé de session.
+            //-->Le client recalcule le HMAC localement avec sessionKey.
+            //-->Si les deux ne matchent pas : arrêt
             if (!MyCrypto.verifyHMAC(this.sessionKey, response.getDataCryptes(), response.getHmac())) {
                 throw new Exception("ALERTE SÉCURITÉ : HMAC invalide !");
             }
             System.out.println("[CLIENT] Vérification HMAC : OK (Intégrité confirmée)");
 
-            // B. Déchiffrement AES
+            // B. Déchiffrement AES avec la sessionkey
             byte[] dataClairs = MyCrypto.decryptAES(this.sessionKey, response.getDataCryptes());
 
-            // --- TRACE DEBUG APRÈS DÉCHIFFREMENT ---
+            // --- TRACE
             System.out.println("[CLIENT] Données déchiffrées (CLAIRES) : " + Arrays.toString(Arrays.copyOfRange(dataClairs, 0, Math.min(dataClairs.length, 50))) + "...");
 
-            // C. Désérialisation
+            // C. Désérialisation : byte --> objet java
             ByteArrayInputStream bais = new ByteArrayInputStream(dataClairs);
             ObjectInputStream oisData = new ObjectInputStream(bais);
 
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings("unchecked") //Convertit un objet sérialisé en List<Report>
             List<Report> liste = (List<Report>) oisData.readObject();
 
             System.out.println("[CLIENT] Liste reconstruite : " + liste.size() + " rapports récupérés.");
@@ -133,8 +137,8 @@ public class NetworkManager {
     }
 
     public ReponseAddReport sendAddReport(int patientId, String description, java.util.Date date) throws Exception {
-        // 1. Création de l'objet métier (ID temporaire 0, DoctorID sera mis par le serveur)
-        // Note: On ne connait pas notre propre ID médecin ici, le serveur le sait via la session
+        // 1. Création de l'objet métier (ID tmp 0, DoctorID sera mis par le serveur)
+        // Note: On ne connait pas notre  ID médecin ici, le serveur le sait via la session
         Report rapport = new Report(0, 0, patientId, date, description);
 
         // 2. Sérialisation (Objet -> byte[])

@@ -22,6 +22,7 @@ public class ReportEditorDialog extends JDialog {
     private Runnable onSuccessCallback; // Fonction à appeler si la sauvegarde réussit (pour rafraîchir la liste)
 
     public ReportEditorDialog(Frame parent, Report report, Runnable onSuccess) {
+        //Titre dynamique selon le mode
         super(parent, report == null ? "Nouveau Rapport" : "Modifier Rapport #" + report.getId(), true);
         this.reportToEdit = report;
         this.onSuccessCallback = onSuccess;
@@ -42,8 +43,6 @@ public class ReportEditorDialog extends JDialog {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 5, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // --- Champs ---
 
         // ID Patient
         gbc.gridx = 0; gbc.gridy = 0; add(new JLabel("ID Patient :"), gbc);
@@ -83,7 +82,7 @@ public class ReportEditorDialog extends JDialog {
     private void prefillData() {
         // Mode Édition : on remplit les champs
         tfPatientId.setText(String.valueOf(reportToEdit.getPatientId()));
-        // On empêche souvent de changer le patient d'un rapport existant (optionnel)
+        // On empêche de changer le patient d'un rapport existant
         tfPatientId.setEditable(false);
 
         tfDate.setText(new SimpleDateFormat("yyyy-MM-dd").format(reportToEdit.getDate()));
@@ -92,7 +91,7 @@ public class ReportEditorDialog extends JDialog {
 
     private void handleSave() {
         try {
-            // 1. Validation locale
+            //Validation locale
             int patientId = Integer.parseInt(tfPatientId.getText().trim());
             String dateStr = tfDate.getText().trim();
             String description = taDescription.getText().trim();
@@ -107,7 +106,7 @@ public class ReportEditorDialog extends JDialog {
 
             btnSave.setEnabled(false); // Anti-double clic
 
-            // 2. Appel Réseau (Thread séparé)
+            //Appel Réseau
             new Thread(() -> {
                 try {
                     NetworkManager nm = NetworkManager.getInstance();
@@ -115,12 +114,12 @@ public class ReportEditorDialog extends JDialog {
                     String message = "";
 
                     if (reportToEdit == null) {
-                        // --- CAS AJOUT ---
+                        //AJOUT --> envoie requete au serv et recois la rep
                         ReponseAddReport rep = nm.sendAddReport(patientId, description, date);
                         success = rep.isSuccess();
                         message = rep.getMessage();
                     } else {
-                        // --- CAS ÉDITION ---
+                        //CAS ÉDITION--> envoie requete au serv et recois la rep
                         ReponseEditReport rep = nm.sendEditReport(reportToEdit.getId(), patientId, description, date);
                         success = rep.isSuccess();
                         message = rep.getMessage();
